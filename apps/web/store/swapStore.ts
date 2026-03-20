@@ -61,7 +61,13 @@ export const useSwapStore = create<SwapState & SwapActions>()((set, get) => ({
   setSwapTxSignature: (sig) => set({ swapTxSignature: sig }),
   flipTokens: () => {
     const { inputToken, outputToken, outputAmount } = get();
-    set({ inputToken: outputToken, outputToken: inputToken, inputAmount: outputAmount, outputAmount: "", route: null });
+    set({
+      inputToken: outputToken,
+      outputToken: inputToken,
+      inputAmount: outputAmount,
+      outputAmount: "",
+      route: null,
+    });
   },
   reset: () => set(initialState),
 }));
