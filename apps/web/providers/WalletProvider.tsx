@@ -14,7 +14,7 @@ const WalletProviderInner = dynamic(
     );
 
     // Import CSS for wallet modal
-    // @ts-ignore - CSS module import without type declarations
+    // @ts-ignore - CSS file import without type declarations
     await import("@solana/wallet-adapter-react-ui/styles.css");
 
     function InnerProvider({ children }: { children: React.ReactNode }) {
