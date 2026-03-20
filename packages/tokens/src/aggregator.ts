@@ -22,7 +22,7 @@ function mergeToken(base: Token, incoming: Token): Token {
 
 function rankToken(token: Token): number {
   let score = 0;
-  score += (token.sources.length ?? 0) * 20;
+  score += token.sources.length * 20;
   if (token.tags?.includes("verified")) score += 100;
   if (token.tags?.includes("community")) score += 50;
   if (token.tags?.includes("strict")) score += 200;

@@ -44,8 +44,6 @@ class RpcManager {
     let healthy = false;
     let latencyMs = Infinity;
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT_MS);
       const conn = this.getOrCreateConnection(endpoint);
       await Promise.race([
         conn.getSlot(),
@@ -53,7 +51,6 @@ class RpcManager {
           setTimeout(() => reject(new Error("timeout")), HEALTH_CHECK_TIMEOUT_MS)
         ),
       ]);
-      clearTimeout(timeout);
       latencyMs = Date.now() - start;
       healthy = true;
     } catch {
