@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#0a0a0f] text-white antialiased;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl;
+  }
+  .glass-input {
+    @apply bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30
+           focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all duration-200;
+  }
+  .stat-card {
+    @apply glass-card p-4 space-y-1;
+  }
+  .table-row {
+    @apply border-b border-white/5 hover:bg-white/5 transition-colors;
+  }
+}

@@ -18,6 +18,125 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
+  apps/admin:
+    dependencies:
+      '@askstudio/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@askstudio/dex':
+        specifier: workspace:*
+        version: link:../../packages/dex
+      '@askstudio/tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
+      '@askstudio/web3':
+        specifier: workspace:*
+        version: link:../../packages/web3
+      '@tanstack/react-query':
+        specifier: ^5.37.1
+        version: 5.91.3(react@18.3.1)
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      next:
+        specifier: 14.2.3
+        version: 14.2.3(@babel/core@7.29.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.12.12
+        version: 20.19.37
+      '@types/react':
+        specifier: ^18.3.1
+        version: 18.3.28
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.28)
+      autoprefixer:
+        specifier: ^10.4.19
+        version: 10.4.27(postcss@8.5.8)
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.1
+      eslint-config-next:
+        specifier: 14.2.3
+        version: 14.2.3(eslint@8.57.1)(typescript@5.9.3)
+      postcss:
+        specifier: ^8.4.38
+        version: 8.5.8
+      tailwindcss:
+        specifier: ^3.4.3
+        version: 3.4.19(yaml@2.8.2)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
+  apps/dev:
+    dependencies:
+      '@askstudio/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@askstudio/dex':
+        specifier: workspace:*
+        version: link:../../packages/dex
+      '@askstudio/tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
+      '@askstudio/web3':
+        specifier: workspace:*
+        version: link:../../packages/web3
+      '@solana/web3.js':
+        specifier: ^1.91.8
+        version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
+      '@tanstack/react-query':
+        specifier: ^5.37.1
+        version: 5.91.3(react@18.3.1)
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      next:
+        specifier: 14.2.3
+        version: 14.2.3(@babel/core@7.29.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.12.12
+        version: 20.19.37
+      '@types/react':
+        specifier: ^18.3.1
+        version: 18.3.28
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.28)
+      autoprefixer:
+        specifier: ^10.4.19
+        version: 10.4.27(postcss@8.5.8)
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.1
+      eslint-config-next:
+        specifier: 14.2.3
+        version: 14.2.3(eslint@8.57.1)(typescript@5.9.3)
+      postcss:
+        specifier: ^8.4.38
+        version: 8.5.8
+      tailwindcss:
+        specifier: ^3.4.3
+        version: 3.4.19(yaml@2.8.2)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
   apps/web:
     dependencies:
       '@askstudio/config':
