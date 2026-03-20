@@ -9,11 +9,12 @@ const WalletProviderInner = dynamic(
       "@solana/wallet-adapter-react"
     );
     const { WalletModalProvider } = await import("@solana/wallet-adapter-react-ui");
-    const { PhantomWalletAdapter, SolflareWalletAdapter, BackpackWalletAdapter } = await import(
+    const { PhantomWalletAdapter, SolflareWalletAdapter } = await import(
       "@solana/wallet-adapter-wallets"
     );
 
     // Import CSS for wallet modal
+    // @ts-ignore - CSS module import without type declarations
     await import("@solana/wallet-adapter-react-ui/styles.css");
 
     function InnerProvider({ children }: { children: React.ReactNode }) {
@@ -23,7 +24,6 @@ const WalletProviderInner = dynamic(
         () => [
           new PhantomWalletAdapter(),
           new SolflareWalletAdapter(),
-          new BackpackWalletAdapter(),
         ],
         []
       );
