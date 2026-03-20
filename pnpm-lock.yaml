@@ -230,9 +230,6 @@ importers:
       '@askstudio/config':
         specifier: workspace:*
         version: link:../config
-      '@askstudio/web3':
-        specifier: workspace:*
-        version: link:../web3
     devDependencies:
       '@types/node':
         specifier: ^20.12.12
