@@ -31,12 +31,11 @@ export function SwapCard() {
   } = useSwapStore();
 
   const { data: tokenList, isLoading: tokensLoading, error: tokensError } = useTokens();
-  const { refresh } = useQuote();
+  const { refresh, latencyMs } = useQuote();
   const { executeSwap } = useSwap();
   const { connected } = useWallet();
 
   const [selectorTarget, setSelectorTarget] = useState<"input" | "output" | null>(null);
-  const [quoteLatencyMs, setQuoteLatencyMs] = useState<number | undefined>(undefined);
 
   const tokens = tokenList?.tokens ?? [];
 
@@ -95,7 +94,7 @@ export function SwapCard() {
 
         <SlippageControl />
 
-        <RouteInfo route={route} latencyMs={quoteLatencyMs} loading={isLoadingQuote} />
+        <RouteInfo route={route} latencyMs={latencyMs} loading={isLoadingQuote} />
 
         {error && (
           <div className="rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-red-400 text-sm">

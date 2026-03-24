@@ -1,5 +1,8 @@
 import { rpcManager } from "@askstudio/web3";
 
+// Force dynamic rendering — live RPC health checks must not be prerendered at build time.
+export const dynamic = "force-dynamic";
+
 export default async function RpcPage() {
   const health = await rpcManager.checkAllHealth();
   return (

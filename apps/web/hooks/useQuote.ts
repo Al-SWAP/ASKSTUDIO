@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSwapStore } from "../store/swapStore";
 import type { SwapRoute } from "@askstudio/dex";
 
@@ -17,12 +17,14 @@ export function useQuote() {
     setError,
   } = useSwapStore();
 
+  const [latencyMs, setLatencyMs] = useState<number | undefined>(undefined);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const fetchQuote = useCallback(async () => {
     if (!inputToken || !outputToken || !inputAmount || parseFloat(inputAmount) <= 0) {
       setRoute(null);
+      setLatencyMs(undefined);
       return;
     }
 
@@ -32,11 +34,14 @@ export function useQuote() {
     setLoadingQuote(true);
     setError(null);
 
+    const start = performance.now();
+
     try {
       const decimals = inputToken.decimals ?? 9;
       const amountLamports = Math.floor(parseFloat(inputAmount) * Math.pow(10, decimals));
       if (amountLamports <= 0) {
         setRoute(null);
+        setLatencyMs(undefined);
         return;
       }
 
@@ -58,10 +63,12 @@ export function useQuote() {
 
       const route: SwapRoute = await res.json();
       setRoute(route);
+      setLatencyMs(Math.round(performance.now() - start));
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "Quote failed");
       setRoute(null);
+      setLatencyMs(undefined);
     } finally {
       setLoadingQuote(false);
     }
@@ -75,5 +82,5 @@ export function useQuote() {
     };
   }, [fetchQuote]);
 
-  return { refresh: fetchQuote };
+  return { refresh: fetchQuote, latencyMs };
 }

@@ -3,6 +3,8 @@ import { blacklistToken, unblacklistToken, getBlacklist } from "@askstudio/token
 
 export const runtime = "nodejs";
 
+const BASE58_PUBKEY_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
 export async function GET() {
   return NextResponse.json({ blacklist: getBlacklist() });
 }
@@ -18,6 +20,10 @@ export async function POST(req: NextRequest) {
   const { action, mint } = body;
   if (!mint || typeof mint !== "string") {
     return NextResponse.json({ error: "mint address required" }, { status: 400 });
+  }
+
+  if (!BASE58_PUBKEY_RE.test(mint)) {
+    return NextResponse.json({ error: "Invalid mint: must be a valid base58 Solana public key" }, { status: 400 });
   }
 
   if (action === "blacklist") {

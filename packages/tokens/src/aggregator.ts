@@ -72,6 +72,10 @@ export async function aggregateTokens(signal?: AbortSignal): Promise<TokenList> 
   };
 }
 
+// NOTE: BLACKLISTED_MINTS is process-local (in-memory). In serverless/edge deployments
+// each cold start begins with an empty set and state is not shared across instances.
+// For production use, persist the blacklist in a durable store (DB/KV) and drive it
+// from there. This implementation is intentionally scoped to local/single-process usage.
 const BLACKLISTED_MINTS = new Set<string>();
 
 export function blacklistToken(mint: string): void {

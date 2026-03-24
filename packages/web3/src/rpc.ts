@@ -17,6 +17,8 @@ class RpcManager {
   private currentIndex = 0;
   private connections: Map<string, Connection> = new Map();
   private lastRotation = 0;
+  /** Explicit endpoint selected via switchEndpoint(). Cleared if it becomes unhealthy. */
+  private pinnedEndpoint: string | null = null;
 
   constructor(endpoints: readonly string[]) {
     this.endpoints = [...endpoints];
@@ -74,6 +76,14 @@ class RpcManager {
   }
 
   getBestEndpoint(): string {
+    // If an endpoint was explicitly pinned by switchEndpoint() and is still healthy, prefer it.
+    if (this.pinnedEndpoint) {
+      const h = this.healthMap.get(this.pinnedEndpoint);
+      if (h?.healthy ?? true) return this.pinnedEndpoint;
+      // Pinned endpoint became unhealthy — fall back to round-robin.
+      this.pinnedEndpoint = null;
+    }
+
     const now = Date.now();
     const shouldRotate = now - this.lastRotation > ROUND_ROBIN_INTERVAL_MS;
 
@@ -107,11 +117,13 @@ class RpcManager {
     );
   }
 
+  /**
+   * Pin a specific endpoint for all subsequent connections.
+   * The pin is automatically released if the endpoint is found unhealthy during getBestEndpoint().
+   */
   switchEndpoint(endpoint: string): void {
-    const idx = this.endpoints.indexOf(endpoint);
-    if (idx !== -1) {
-      this.currentIndex = idx;
-      this.lastRotation = Date.now();
+    if (this.endpoints.includes(endpoint)) {
+      this.pinnedEndpoint = endpoint;
     }
   }
 

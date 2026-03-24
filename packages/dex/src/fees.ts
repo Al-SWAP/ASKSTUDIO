@@ -1,10 +1,14 @@
 import type { FeeConfig } from "./types";
 import { MAX_FEE_BPS, MIN_FEE_BPS, env } from "@askstudio/config";
 
+const BASE58_PUBKEY_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+// Fees are enabled only when a valid base58 token account is configured.
+// An empty FEE_RESERVE (the default) disables fee routing to avoid Jupiter swap failures.
 let _config: FeeConfig = {
   bps: env.DEFAULT_FEE_BPS,
   recipient: env.FEE_RESERVE,
-  enabled: true,
+  enabled: Boolean(env.FEE_RESERVE) && BASE58_PUBKEY_RE.test(env.FEE_RESERVE),
 };
 
 export function getFeeConfig(): FeeConfig {
@@ -19,10 +23,14 @@ export function setFeeConfig(config: Partial<FeeConfig>): FeeConfig {
     _config.bps = config.bps;
   }
   if (config.recipient !== undefined) {
-    if (!config.recipient || config.recipient.trim().length === 0) {
+    const trimmed = config.recipient.trim();
+    if (!trimmed) {
       throw new Error("Fee recipient cannot be empty");
     }
-    _config.recipient = config.recipient.trim();
+    if (!BASE58_PUBKEY_RE.test(trimmed)) {
+      throw new Error("Fee recipient must be a valid base58 Solana public key (SPL token account)");
+    }
+    _config.recipient = trimmed;
   }
   if (config.enabled !== undefined) {
     _config.enabled = config.enabled;
