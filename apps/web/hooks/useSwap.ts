@@ -4,7 +4,16 @@ import { useCallback } from "react";
 import { useWallet as useSolanaWallet, useConnection } from "@solana/wallet-adapter-react";
 import { VersionedTransaction, Transaction } from "@solana/web3.js";
 import { useSwapStore } from "../store/swapStore";
-import { recordSwap } from "@askstudio/dex";
+
+/** Browser-safe base64 → Uint8Array (avoids relying on Node Buffer polyfill) */
+function base64ToUint8Array(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
 
 export function useSwap() {
   const { publicKey, signTransaction, connected } = useSolanaWallet();
@@ -36,24 +45,38 @@ export function useSwap() {
         throw new Error(err.error ?? `Swap failed: ${res.status}`);
       }
 
-      const { swapTransaction, lastValidBlockHeight } = await res.json();
+      const { swapTransaction, lastValidBlockHeight: apiLastValidBlockHeight } = await res.json();
       if (!swapTransaction) throw new Error("No swap transaction returned");
 
-      const txBytes = Buffer.from(swapTransaction, "base64");
-      const { blockhash } = await connection.getLatestBlockhash();
+      // Browser-safe decode — avoids dependency on Node.js Buffer polyfill
+      const txBytes = base64ToUint8Array(swapTransaction);
 
       let signature: string;
+      let blockhash: string;
+      let lastValidBlockHeight: number;
+
       try {
-        // Try versioned transaction first
+        // Versioned transaction path
         const versionedTx = VersionedTransaction.deserialize(txBytes);
-        const signed = await (signTransaction as (tx: VersionedTransaction) => Promise<VersionedTransaction>)(versionedTx);
+        // Extract the blockhash that Jupiter embedded in the transaction
+        blockhash = versionedTx.message.recentBlockhash;
+        lastValidBlockHeight =
+          apiLastValidBlockHeight ?? (await connection.getLatestBlockhash()).lastValidBlockHeight;
+
+        const signed = await (signTransaction as (tx: VersionedTransaction) => Promise<VersionedTransaction>)(
+          versionedTx
+        );
         signature = await connection.sendRawTransaction(signed.serialize(), {
           skipPreflight: false,
           maxRetries: 3,
         });
       } catch {
-        // Fall back to legacy transaction
+        // Legacy transaction fallback
         const legacyTx = Transaction.from(txBytes);
+        blockhash = legacyTx.recentBlockhash ?? (await connection.getLatestBlockhash()).blockhash;
+        lastValidBlockHeight =
+          apiLastValidBlockHeight ?? (await connection.getLatestBlockhash()).lastValidBlockHeight;
+
         const signed = await signTransaction(legacyTx);
         signature = await connection.sendRawTransaction(signed.serialize(), {
           skipPreflight: false,
@@ -61,28 +84,30 @@ export function useSwap() {
         });
       }
 
+      // Confirm against the same blockhash that is baked into the transaction
       await connection.confirmTransaction(
-        {
-          signature,
-          blockhash,
-          lastValidBlockHeight: lastValidBlockHeight ?? (await connection.getLatestBlockhash()).lastValidBlockHeight,
-        },
+        { signature, blockhash, lastValidBlockHeight },
         "confirmed"
       );
 
       setTxSignature(signature);
 
-      recordSwap({
-        inputMint: route.inputMint,
-        outputMint: route.outputMint,
-        inputAmount: parseInt(route.inAmount, 10),
-        outputAmount: parseInt(route.outAmount, 10),
-        feeBps: route.platformFee?.feeBps ?? 0,
-        feeAmountLamports: route.platformFee ? parseInt(route.platformFee.amount, 10) : 0,
-        signature,
-        priceImpactPct: parseFloat(route.priceImpactPct),
-        routeCount: route.routePlan?.length ?? 1,
-      });
+      // Record analytics on the server so the admin dashboard can see them
+      fetch("/api/analytics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inputMint: route.inputMint,
+          outputMint: route.outputMint,
+          inputAmount: parseInt(route.inAmount, 10),
+          outputAmount: parseInt(route.outAmount, 10),
+          feeBps: route.platformFee?.feeBps ?? 0,
+          feeAmountLamports: route.platformFee ? parseInt(route.platformFee.amount, 10) : 0,
+          signature,
+          priceImpactPct: parseFloat(route.priceImpactPct),
+          routeCount: route.routePlan?.length ?? 1,
+        }),
+      }).catch(() => {/* non-critical — don't fail the swap */});
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Swap failed");
     } finally {

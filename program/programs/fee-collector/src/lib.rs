@@ -1,22 +1,35 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 
-declare_id!("FeeCoLLeCToRXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+// Replace with the real program keypair public key before deploying.
+// Generate with: solana-keygen new --outfile fee-collector-keypair.json
+declare_id!("FeeCoLL3CToRPLACEHOLDER11111111111111111111");
+
+/// Seed used to derive the treasury PDA.
+pub const TREASURY_SEED: &[u8] = b"treasury";
+/// Seed used to derive the protocol config PDA.
+pub const CONFIG_SEED: &[u8] = b"config";
 
 #[program]
 pub mod fee_collector {
     use super::*;
 
-    /// Collect a fee from the payer and forward it to the treasury account.
-    /// amount_lamports: lamports to transfer from payer → treasury.
+    /// Initialize the protocol config, storing the authority and fee reserve address.
+    /// Must be called once by the deployer before any fees can be forwarded.
+    pub fn initialize(ctx: Context<Initialize>, fee_reserve: Pubkey) -> Result<()> {
+        let config = &mut ctx.accounts.config;
+        config.authority = ctx.accounts.authority.key();
+        config.fee_reserve = fee_reserve;
+        config.bump = ctx.bumps.config;
+        Ok(())
+    }
+
+    /// Collect a fee from the payer and transfer it to the treasury PDA.
+    /// `amount_lamports`: lamports to transfer from payer → treasury.
     pub fn collect_fee(ctx: Context<CollectFee>, amount_lamports: u64) -> Result<()> {
         require!(amount_lamports > 0, FeeError::ZeroAmount);
-
-        let payer = &ctx.accounts.payer;
-        let treasury = &ctx.accounts.treasury;
-
         require!(
-            payer.lamports() >= amount_lamports,
+            ctx.accounts.payer.lamports() >= amount_lamports,
             FeeError::InsufficientFunds
         );
 
@@ -24,16 +37,16 @@ pub mod fee_collector {
             CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
                 system_program::Transfer {
-                    from: payer.to_account_info(),
-                    to: treasury.to_account_info(),
+                    from: ctx.accounts.payer.to_account_info(),
+                    to: ctx.accounts.treasury.to_account_info(),
                 },
             ),
             amount_lamports,
         )?;
 
         emit!(FeeCollected {
-            payer: payer.key(),
-            treasury: treasury.key(),
+            payer: ctx.accounts.payer.key(),
+            treasury: ctx.accounts.treasury.key(),
             amount_lamports,
             timestamp: Clock::get()?.unix_timestamp,
         });
@@ -41,26 +54,52 @@ pub mod fee_collector {
         Ok(())
     }
 
-    /// Forward accumulated lamports from treasury to reserve (fee_reserve).
-    /// Only the authority may call this.
+    /// Forward accumulated lamports from the treasury PDA to the configured fee reserve.
+    /// Only the authority stored in the config may call this instruction.
     pub fn forward_fees(ctx: Context<ForwardFees>) -> Result<()> {
-        let treasury = &ctx.accounts.treasury;
-        let reserve = &ctx.accounts.fee_reserve;
+        let config = &ctx.accounts.config;
+
+        // Enforce authority
+        require_keys_eq!(
+            ctx.accounts.authority.key(),
+            config.authority,
+            FeeError::Unauthorized
+        );
+
+        // Enforce reserve address matches what was configured at initialization
+        require_keys_eq!(
+            ctx.accounts.fee_reserve.key(),
+            config.fee_reserve,
+            FeeError::InvalidReserveAccount
+        );
 
         let rent = Rent::get()?;
         let min_balance = rent.minimum_balance(0);
-        let current = treasury.lamports();
+        let current = ctx.accounts.treasury.lamports();
 
         require!(current > min_balance, FeeError::InsufficientFunds);
 
         let forward_amount = current.saturating_sub(min_balance);
 
-        **treasury.to_account_info().try_borrow_mut_lamports()? -= forward_amount;
-        **reserve.to_account_info().try_borrow_mut_lamports()? += forward_amount;
+        // Transfer via CPI using treasury PDA signer seeds
+        let config_key = config.key();
+        let seeds: &[&[u8]] = &[TREASURY_SEED, config_key.as_ref(), &[ctx.bumps.treasury]];
+
+        system_program::transfer(
+            CpiContext::new_with_signer(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.treasury.to_account_info(),
+                    to: ctx.accounts.fee_reserve.to_account_info(),
+                },
+                &[seeds],
+            ),
+            forward_amount,
+        )?;
 
         emit!(FeesForwarded {
-            treasury: treasury.key(),
-            reserve: reserve.key(),
+            treasury: ctx.accounts.treasury.key(),
+            reserve: ctx.accounts.fee_reserve.key(),
             amount_lamports: forward_amount,
             timestamp: Clock::get()?.unix_timestamp,
         });
@@ -69,32 +108,82 @@ pub mod fee_collector {
     }
 }
 
+// ─── State ───────────────────────────────────────────────────────────────────
+
+#[account]
+pub struct ProtocolConfig {
+    pub authority: Pubkey,
+    pub fee_reserve: Pubkey,
+    pub bump: u8,
+}
+
+impl ProtocolConfig {
+    pub const LEN: usize = 8 + 32 + 32 + 1;
+}
+
 // ─── Accounts ────────────────────────────────────────────────────────────────
+
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        init,
+        payer = authority,
+        space = ProtocolConfig::LEN,
+        seeds = [CONFIG_SEED],
+        bump
+    )]
+    pub config: Account<'info, ProtocolConfig>,
+
+    /// The treasury PDA that will receive fees. Created here so its address is
+    /// deterministic and verifiable by callers.
+    #[account(
+        seeds = [TREASURY_SEED, config.key().as_ref()],
+        bump
+    )]
+    pub treasury: SystemAccount<'info>,
+
+    pub system_program: Program<'info, System>,
+}
 
 #[derive(Accounts)]
 pub struct CollectFee<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// CHECK: This is the treasury account that receives fees. Validated by address constraints in production.
-    #[account(mut)]
-    pub treasury: UncheckedAccount<'info>,
+    /// Treasury PDA — the only valid fee destination, derived from the config.
+    #[account(
+        mut,
+        seeds = [TREASURY_SEED, config.key().as_ref()],
+        bump
+    )]
+    pub treasury: SystemAccount<'info>,
+
+    #[account(seeds = [CONFIG_SEED], bump = config.bump)]
+    pub config: Account<'info, ProtocolConfig>,
 
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct ForwardFees<'info> {
-    #[account(mut)]
     pub authority: Signer<'info>,
 
-    /// CHECK: Treasury PDA or authority-owned account.
-    #[account(mut)]
-    pub treasury: UncheckedAccount<'info>,
+    #[account(
+        mut,
+        seeds = [TREASURY_SEED, config.key().as_ref()],
+        bump
+    )]
+    pub treasury: SystemAccount<'info>,
 
-    /// CHECK: The final reserve address (monads.skr resolved address).
+    /// CHECK: Address is validated in the instruction against config.fee_reserve.
     #[account(mut)]
     pub fee_reserve: UncheckedAccount<'info>,
+
+    #[account(seeds = [CONFIG_SEED], bump = config.bump)]
+    pub config: Account<'info, ProtocolConfig>,
 
     pub system_program: Program<'info, System>,
 }
@@ -127,4 +216,6 @@ pub enum FeeError {
     InsufficientFunds,
     #[msg("Unauthorized: signer is not the authority")]
     Unauthorized,
+    #[msg("Invalid reserve account: does not match configured fee_reserve")]
+    InvalidReserveAccount,
 }

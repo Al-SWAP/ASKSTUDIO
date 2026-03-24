@@ -41,9 +41,14 @@ class RpcManager {
 
   async checkHealth(endpoint: string): Promise<RpcHealth> {
     const start = Date.now();
+    const conn = this.getOrCreateConnection(endpoint);
+
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Health check timeout")), HEALTH_CHECK_TIMEOUT_MS)
+    );
+
     try {
-      const conn = this.getOrCreateConnection(endpoint);
-      await conn.getLatestBlockhash("finalized");
+      await Promise.race([conn.getLatestBlockhash("finalized"), timeoutPromise]);
       const health: RpcHealth = {
         endpoint,
         latencyMs: Date.now() - start,

@@ -5,6 +5,7 @@ import { getFeeConfig } from "@askstudio/dex";
 export const runtime = "edge";
 
 const SWAP_TIMEOUT_MS = 15_000;
+const BASE58_PUBKEY_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>;
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing quoteResponse or userPublicKey" }, { status: 400 });
   }
 
-  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(userPublicKey)) {
+  if (!BASE58_PUBKEY_RE.test(userPublicKey)) {
     return NextResponse.json({ error: "Invalid wallet public key" }, { status: 400 });
   }
 
@@ -34,7 +35,9 @@ export async function POST(req: NextRequest) {
     prioritizationFeeLamports: 1000,
   };
 
-  if (feeConfig.enabled && feeConfig.recipient) {
+  // Only attach platform fee when the fee account is a valid base58 pubkey (initialized SPL ATA).
+  // An empty or non-base58 FEE_RESERVE disables fee routing to avoid swap build failures.
+  if (feeConfig.enabled && feeConfig.recipient && BASE58_PUBKEY_RE.test(feeConfig.recipient)) {
     swapPayload.feeAccount = feeConfig.recipient;
   }
 

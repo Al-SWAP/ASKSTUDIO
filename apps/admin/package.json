@@ -14,9 +14,11 @@
     "@askstudio/dex": "workspace:*",
     "@askstudio/tokens": "workspace:*",
     "@askstudio/web3": "workspace:*",
+    "bs58": "^6.0.0",
     "next": "14.2.3",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

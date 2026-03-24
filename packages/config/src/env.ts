@@ -8,7 +8,9 @@ export const env = {
   RAYDIUM_API: process.env.NEXT_PUBLIC_RAYDIUM_API ?? "https://api.raydium.io/v2/sdk/liquidity/mainnet.json",
   ORCA_API: process.env.NEXT_PUBLIC_ORCA_API ?? "https://api.orca.so/allPools",
   WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "public_default_project_id",
-  FEE_RESERVE: process.env.NEXT_PUBLIC_FEE_RESERVE ?? "monads.skr",
+  // FEE_RESERVE must be a valid base58 SPL token account (ATA) for the fee mint.
+  // Leave empty to disable platform fees in default/local setups.
+  FEE_RESERVE: process.env.NEXT_PUBLIC_FEE_RESERVE ?? "",
   DEFAULT_FEE_BPS: parseInt(process.env.NEXT_PUBLIC_DEFAULT_FEE_BPS ?? "20", 10),
   ADMIN_WALLET_WHITELIST: (process.env.ADMIN_WALLET_WHITELIST ?? "").split(",").filter(Boolean),
 } as const;

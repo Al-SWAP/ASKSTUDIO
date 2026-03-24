@@ -7,6 +7,16 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@types/bs58':
+        specifier: ^5.0.0
+        version: 5.0.0
+      bs58:
+        specifier: ^6.0.0
+        version: 6.0.0
+      tweetnacl:
+        specifier: ^1.0.3
+        version: 1.0.3
     devDependencies:
       '@types/node':
         specifier: ^20.14.2
@@ -32,6 +42,9 @@ importers:
       '@askstudio/web3':
         specifier: workspace:*
         version: link:../../packages/web3
+      bs58:
+        specifier: ^6.0.0
+        version: 6.0.0
       next:
         specifier: 14.2.3
         version: 14.2.3(@babel/core@7.29.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -41,6 +54,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      tweetnacl:
+        specifier: ^1.0.3
+        version: 1.0.3
     devDependencies:
       '@types/node':
         specifier: ^20.14.2
@@ -1694,6 +1710,10 @@ packages:
     resolution: {integrity: sha512-voicVULvUV5yaGXo0Iue13BcHGYW3u0VgqSbfQwBaHbpj1zLjYV4KIe+7fYIo6DO8FVUJzxFps3ODCQG/Wy2Qw==}
     cpu: [arm64]
     os: [win32]
+
+  '@types/bs58@5.0.0':
+    resolution: {integrity: sha512-cAw/jKBzo98m6Xz1X5ETqymWfIMbXbu6nK15W4LQYjeHJkVqSmM5PO8Bd9KVHQJ/F4rHcSso9LcjtgCW6TGu2w==}
+    deprecated: This is a stub types definition. bs58 provides its own type definitions, so you do not need this installed.
 
   '@types/cacheable-request@6.0.3':
     resolution: {integrity: sha512-IQ3EbTzGxIigb1I3qPZc1rWJnH0BmSKv5QYTalEwweFvyBDLSAe24zP0le/hyi7ecGfZVlIVAg4BZqb8WBwKqw==}
@@ -5073,6 +5093,9 @@ packages:
     resolution: {integrity: sha512-Rb4qk5YT8RUwwdXtkLpkVhNEe/lor6+WV7S5tTlLpxSz6MjV5Qi8jGNn4gS6NAvrYGA/rNrE6YUQM85sCZUDbQ==}
     hasBin: true
 
+  tweetnacl@1.0.3:
+    resolution: {integrity: sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==}
+
   type-detect@4.0.8:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==}
     engines: {node: '>=4'}
@@ -7653,6 +7676,10 @@ snapshots:
 
   '@turbo/windows-arm64@2.8.20':
     optional: true
+
+  '@types/bs58@5.0.0':
+    dependencies:
+      bs58: 6.0.0
 
   '@types/cacheable-request@6.0.3':
     dependencies:
@@ -11654,6 +11681,8 @@ snapshots:
       '@turbo/linux-arm64': 2.8.20
       '@turbo/windows-64': 2.8.20
       '@turbo/windows-arm64': 2.8.20
+
+  tweetnacl@1.0.3: {}
 
   type-detect@4.0.8: {}
 

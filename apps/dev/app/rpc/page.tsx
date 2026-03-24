@@ -1,7 +1,7 @@
 import { rpcManager } from "@askstudio/web3";
 
 export default async function RpcDevPage() {
-  const health = rpcManager.getAllHealth();
+  const health = await rpcManager.checkAllHealth();
   return (
     <div className="space-y-6 max-w-3xl">
       <h1 className="text-xl font-bold text-green-400">RPC Switcher</h1>

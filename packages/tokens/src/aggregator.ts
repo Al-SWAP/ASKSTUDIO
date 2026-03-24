@@ -93,11 +93,22 @@ export function filterTokenList(list: TokenList): TokenList {
   };
 }
 
-export function buildFastIndex(list: TokenList): Map<string, Token> {
-  const map = new Map<string, Token>();
+export function buildFastIndex(list: TokenList): { byAddress: Map<string, Token>; bySymbol: Map<string, Token[]> } {
+  const byAddress = new Map<string, Token>();
+  const bySymbol = new Map<string, Token[]>();
+
   for (const token of list.tokens) {
-    map.set(token.address, token);
-    map.set(token.symbol.toLowerCase(), token);
+    byAddress.set(token.address, token);
+
+    // Symbols are NOT unique on Solana — index to an array to avoid overwriting
+    const key = token.symbol.toLowerCase();
+    const existing = bySymbol.get(key);
+    if (existing) {
+      existing.push(token);
+    } else {
+      bySymbol.set(key, [token]);
+    }
   }
-  return map;
+
+  return { byAddress, bySymbol };
 }
