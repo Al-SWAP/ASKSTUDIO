@@ -1,0 +1,45 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "noEmit": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@askstudio/config": [
+        "../../packages/config/src/index.ts"
+      ],
+      "@askstudio/dex": [
+        "../../packages/dex/src/index.ts"
+      ],
+      "@askstudio/tokens": [
+        "../../packages/tokens/src/index.ts"
+      ],
+      "@askstudio/web3": [
+        "../../packages/web3/src/index.ts"
+      ]
+    },
+    "allowJs": true,
+    "incremental": true,
+    "isolatedModules": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

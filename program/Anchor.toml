@@ -1,0 +1,17 @@
+{
+  "programs": {
+    "localnet": {
+      "fee_collector": "FeeCoLLeCToRXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    }
+  },
+  "registry": {
+    "url": "https://api.apr.dev"
+  },
+  "provider": {
+    "cluster": "Localnet",
+    "wallet": "~/.config/solana/id.json"
+  },
+  "scripts": {
+    "lint:fix": "cargo clippy --fix"
+  }
+}
