@@ -9,6 +9,31 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 const DEBOUNCE_MS = 600;
 
+/** Convert a decimal string amount to base units (integer) without float precision loss.
+ * Throws if the result exceeds Number.MAX_SAFE_INTEGER to prevent precision errors. */
+function toBaseUnits(amount: string, decimals: number): number {
+  const [whole, frac = ""] = amount.split(".");
+  const fracPadded = frac.padEnd(decimals, "0").slice(0, decimals);
+  const combined = (whole || "0") + fracPadded;
+  const trimmed = combined.replace(/^0+(?=\d)/, "") || "0";
+  const result = parseInt(trimmed, 10);
+  if (isNaN(result)) return 0;
+  if (result > Number.MAX_SAFE_INTEGER) {
+    throw new Error("Amount too large to represent safely; please reduce the input amount.");
+  }
+  return result;
+}
+
+/** Decode a base64 string to Uint8Array without relying on Node's Buffer polyfill. */
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
 export function useSwap() {
   const store = useSwapStore();
   const { publicKey, sendTransaction, connected } = useWallet();
@@ -31,7 +56,7 @@ export function useSwap() {
     store.setQuoteError(null);
 
     try {
-      const amount = Math.floor(parseFloat(inputAmount) * Math.pow(10, inputToken.decimals));
+      const amount = toBaseUnits(inputAmount, inputToken.decimals);
       const res = await fetch(
         `/api/quote?inputMint=${inputToken.address}&outputMint=${outputToken.address}&amount=${amount}&slippageBps=${slippageBps}`,
         { signal: abortRef.current.signal }
@@ -90,14 +115,22 @@ export function useSwap() {
         wrapAndUnwrapSol: true,
       });
 
-      const connection = getRpcConnection("confirmed");
-      const txBuffer = Buffer.from(swapData.swapTransaction, "base64");
+      const connection = await getRpcConnection("confirmed");
+      const txBytes = base64ToUint8Array(swapData.swapTransaction);
 
       let tx: Transaction | VersionedTransaction;
+      let recentBlockhash: string;
       try {
-        tx = VersionedTransaction.deserialize(txBuffer);
+        const versioned = VersionedTransaction.deserialize(txBytes);
+        tx = versioned;
+        recentBlockhash = versioned.message.recentBlockhash;
       } catch {
-        tx = Transaction.from(txBuffer);
+        const legacy = Transaction.from(txBytes);
+        tx = legacy;
+        if (!legacy.recentBlockhash) {
+          throw new Error("Transaction is missing recentBlockhash; cannot confirm.");
+        }
+        recentBlockhash = legacy.recentBlockhash;
       }
 
       const sig = await sendTransaction(tx, connection, {
@@ -108,9 +141,12 @@ export function useSwap() {
 
       store.setSwapTxSignature(sig);
 
-      const { blockhash } = await connection.getLatestBlockhash("confirmed");
       await connection.confirmTransaction(
-        { signature: sig, lastValidBlockHeight: swapData.lastValidBlockHeight, blockhash },
+        {
+          signature: sig,
+          lastValidBlockHeight: swapData.lastValidBlockHeight,
+          blockhash: recentBlockhash,
+        },
         "confirmed"
       );
     } catch (err: unknown) {

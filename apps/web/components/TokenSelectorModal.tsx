@@ -28,9 +28,10 @@ export function TokenSelectorModal({ open, onClose, onSelect, excludeMint }: Tok
   );
 
   useEffect(() => {
+    if (!open) return;
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  }, [open, handleKeyDown]);
 
   if (!open) return null;
 

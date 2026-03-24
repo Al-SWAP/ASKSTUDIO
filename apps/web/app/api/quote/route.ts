@@ -44,7 +44,16 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data, {
+    // Jupiter v6 /quote returns the route object directly. If a future API version
+    // wraps it in { data: [...] }, extract the best (first) route automatically.
+    const route =
+      data &&
+      typeof data === "object" &&
+      Array.isArray((data as Record<string, unknown>).data) &&
+      ((data as Record<string, unknown>).data as unknown[]).length > 0
+        ? ((data as Record<string, unknown>).data as unknown[])[0]
+        : data;
+    return NextResponse.json(route, {
       headers: {
         "Cache-Control": "no-store",
         "Content-Type": "application/json",

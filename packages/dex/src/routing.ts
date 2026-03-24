@@ -8,11 +8,12 @@ const WEIGHTS = {
 };
 
 export function scoreRoute(route: SwapRoute, latencyMs?: number): RouteScore {
-  const outAmount = parseFloat(route.outAmount);
+  // Use BigInt for the outAmount comparison to avoid precision loss on large base-unit values.
+  const outAmountPositive = BigInt(route.outAmount || "0") > 0n;
   const priceImpact = parseFloat(route.priceImpactPct);
   const slippageBps = route.slippageBps;
 
-  const outputScore = outAmount > 0 ? Math.min(100, (1 / (1 + priceImpact)) * 100) : 0;
+  const outputScore = outAmountPositive ? Math.min(100, (1 / (1 + priceImpact)) * 100) : 0;
   const feeScore = Math.max(0, 100 - slippageBps / 10);
   const priceImpactScore = Math.max(0, 100 - priceImpact * 20);
   const latencyScore = latencyMs != null ? Math.max(0, 100 - latencyMs / 100) : 50;

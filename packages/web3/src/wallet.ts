@@ -34,9 +34,12 @@ export async function getTokenBalance(
       mint: tokenMint,
     });
     if (tokenAccounts.value.length === 0) return 0;
-    const account = tokenAccounts.value[0];
-    const amount = account.account.data.parsed.info.tokenAmount.uiAmount;
-    return amount ?? 0;
+    // Sum across all token accounts for the same mint to avoid under-reporting.
+    return tokenAccounts.value.reduce((sum, account) => {
+      const uiAmount: number | null =
+        account.account.data.parsed.info.tokenAmount.uiAmount;
+      return sum + (uiAmount ?? 0);
+    }, 0);
   } catch {
     return 0;
   }

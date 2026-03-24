@@ -1,7 +1,9 @@
 import { rpcManager } from "@askstudio/web3";
+import type { Commitment } from "@solana/web3.js";
 
 export { rpcManager };
 
-export function getRpcConnection(commitment?: Parameters<typeof rpcManager.getConnection>[0]) {
-  return rpcManager.getConnection(commitment);
+/** Returns a Connection using the best healthy endpoint, with automatic failover. */
+export async function getRpcConnection(commitment: Commitment = "confirmed") {
+  return rpcManager.getConnectionWithFailover(commitment);
 }

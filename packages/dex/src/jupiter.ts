@@ -69,13 +69,28 @@ export async function getJupiterSwapTransaction(
 }
 
 function anySignal(signals: AbortSignal[]): AbortSignal {
+  // Prefer the native AbortSignal.any when available (Node 18.17+ / Chrome 116+)
+  if (typeof AbortSignal.any === "function") {
+    return AbortSignal.any(signals);
+  }
   const controller = new AbortController();
+  const cleanup: (() => void)[] = [];
+
   for (const signal of signals) {
     if (signal.aborted) {
       controller.abort();
       return controller.signal;
     }
-    signal.addEventListener("abort", () => controller.abort(), { once: true });
+    const onAbort = () => {
+      controller.abort();
+      cleanup.forEach((fn) => fn());
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    cleanup.push(() => signal.removeEventListener("abort", onAbort));
   }
+
+  // Also clean up all listeners once the combined signal itself fires.
+  controller.signal.addEventListener("abort", () => cleanup.forEach((fn) => fn()), { once: true });
+
   return controller.signal;
 }

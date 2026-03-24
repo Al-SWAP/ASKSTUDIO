@@ -4,21 +4,17 @@ import { useState, useEffect } from "react";
 import type { Token } from "@askstudio/tokens";
 
 const STORAGE_KEY = "admin_token_blacklist";
-const OVERRIDE_KEY = "admin_token_overrides";
 
 export default function TokensAdminPage() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [loading, setLoading] = useState(true);
   const [blacklist, setBlacklist] = useState<Set<string>>(new Set());
-  const [overrides, setOverrides] = useState<Record<string, Partial<Token>>>({});
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) setBlacklist(new Set(JSON.parse(saved)));
-    const ovr = localStorage.getItem(OVERRIDE_KEY);
-    if (ovr) setOverrides(JSON.parse(ovr));
   }, []);
 
   useEffect(() => {

@@ -17,6 +17,7 @@ class RpcManager {
   private currentIndex = 0;
   private connections: Map<string, Connection> = new Map();
   private lastRotation = 0;
+  private pinnedEndpoint: string | null = null;
 
   constructor(endpoints: readonly string[]) {
     this.endpoints = [...endpoints];
@@ -43,19 +44,25 @@ class RpcManager {
     const start = Date.now();
     let healthy = false;
     let latencyMs = Infinity;
+    const timeoutHandle = { id: undefined as ReturnType<typeof setTimeout> | undefined };
     try {
       const conn = this.getOrCreateConnection(endpoint);
       await Promise.race([
         conn.getSlot(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), HEALTH_CHECK_TIMEOUT_MS)
-        ),
+        new Promise<never>((_, reject) => {
+          timeoutHandle.id = setTimeout(
+            () => reject(new Error("timeout")),
+            HEALTH_CHECK_TIMEOUT_MS
+          );
+        }),
       ]);
       latencyMs = Date.now() - start;
       healthy = true;
     } catch {
       latencyMs = Infinity;
       healthy = false;
+    } finally {
+      if (timeoutHandle.id !== undefined) clearTimeout(timeoutHandle.id);
     }
     const health: RpcHealth = { endpoint, latencyMs, healthy, lastChecked: Date.now() };
     this.healthMap.set(endpoint, health);
@@ -68,6 +75,9 @@ class RpcManager {
   }
 
   getBestEndpoint(): string {
+    if (this.pinnedEndpoint && this.endpoints.includes(this.pinnedEndpoint)) {
+      return this.pinnedEndpoint;
+    }
     const healthy = this.endpoints
       .map((ep) => this.healthMap.get(ep)!)
       .filter((h) => h.healthy)
@@ -100,18 +110,21 @@ class RpcManager {
   async getConnectionWithFailover(commitment: Commitment = "confirmed"): Promise<Connection> {
     const best = this.getBestEndpoint();
     const conn = this.getOrCreateConnection(best, commitment);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       await Promise.race([
         conn.getSlot(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), HEALTH_CHECK_TIMEOUT_MS)
-        ),
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error("timeout")), HEALTH_CHECK_TIMEOUT_MS);
+        }),
       ]);
       return conn;
     } catch {
       this.healthMap.set(best, { ...this.healthMap.get(best)!, healthy: false });
       const fallback = this.getBestEndpoint();
       return this.getOrCreateConnection(fallback, commitment);
+    } finally {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
     }
   }
 
@@ -122,6 +135,18 @@ class RpcManager {
   setEndpointHealth(endpoint: string, healthy: boolean): void {
     const h = this.healthMap.get(endpoint);
     if (h) this.healthMap.set(endpoint, { ...h, healthy });
+  }
+
+  /**
+   * Pin a specific endpoint so all subsequent `getBestEndpoint` calls return it.
+   * Pass `null` to resume automatic health-based selection.
+   */
+  pinEndpoint(endpoint: string | null): void {
+    this.pinnedEndpoint = endpoint;
+  }
+
+  getPinnedEndpoint(): string | null {
+    return this.pinnedEndpoint;
   }
 }
 

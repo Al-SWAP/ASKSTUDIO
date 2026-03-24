@@ -8,7 +8,9 @@ export default function DevRpcPage() {
   const [healthData, setHealthData] = useState<RpcHealth[]>([]);
   const [checking, setChecking] = useState(false);
   const [customEndpoint, setCustomEndpoint] = useState("");
-  const [activeEndpoint, setActiveEndpoint] = useState<string>(RPC_ENDPOINTS[0]);
+  const [activeEndpoint, setActiveEndpoint] = useState<string>(
+    () => rpcManager.getPinnedEndpoint() ?? RPC_ENDPOINTS[0]
+  );
   const [customTestResult, setCustomTestResult] = useState<string | null>(null);
 
   const checkHealth = useCallback(async () => {
@@ -25,6 +27,13 @@ export default function DevRpcPage() {
     checkHealth();
   }, [checkHealth]);
 
+  const handleSelectEndpoint = (endpoint: string) => {
+    setActiveEndpoint(endpoint);
+    // Pin the selected endpoint in the singleton rpcManager so all subsequent
+    // connections (swap UI, token fetches, etc.) use it immediately.
+    rpcManager.pinEndpoint(endpoint);
+  };
+
   const testCustomEndpoint = async () => {
     if (!customEndpoint.trim()) return;
     setCustomTestResult("Testing...");
@@ -32,12 +41,21 @@ export default function DevRpcPage() {
     try {
       const { Connection } = await import("@solana/web3.js");
       const conn = new Connection(customEndpoint, "confirmed");
-      await Promise.race([
-        conn.getSlot(),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000)),
-      ]);
-      const ms = Date.now() - start;
-      setCustomTestResult(`✓ Healthy — ${ms}ms latency`);
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await Promise.race([
+          conn.getSlot(),
+          new Promise<never>((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error("timeout")), 5000);
+          }),
+        ]);
+        const ms = Date.now() - start;
+        setCustomTestResult(`✓ Healthy — ${ms}ms latency`);
+      } catch (e) {
+        setCustomTestResult(`✗ Failed: ${e instanceof Error ? e.message : "Unknown error"}`);
+      } finally {
+        if (timeoutId !== undefined) clearTimeout(timeoutId);
+      }
     } catch (e) {
       setCustomTestResult(`✗ Failed: ${e instanceof Error ? e.message : "Unknown error"}`);
     }
@@ -64,7 +82,7 @@ export default function DevRpcPage() {
           return (
             <div
               key={endpoint}
-              onClick={() => setActiveEndpoint(endpoint)}
+              onClick={() => handleSelectEndpoint(endpoint)}
               className={`glass-card p-4 flex items-center justify-between gap-4 cursor-pointer transition-all
                 ${isActive ? "border-violet-500/50 bg-violet-600/10" : "hover:bg-white/5"}`}
             >
@@ -110,13 +128,26 @@ export default function DevRpcPage() {
         )}
       </div>
 
-      <button
-        onClick={checkHealth}
-        disabled={checking}
-        className="px-4 py-2 rounded-xl bg-violet-600/30 hover:bg-violet-600/40 text-violet-300 text-sm font-medium transition-colors disabled:opacity-50"
-      >
-        {checking ? "Checking all endpoints..." : "Refresh Health"}
-      </button>
+      <div className="flex gap-3">
+        <button
+          onClick={checkHealth}
+          disabled={checking}
+          className="px-4 py-2 rounded-xl bg-violet-600/30 hover:bg-violet-600/40 text-violet-300 text-sm font-medium transition-colors disabled:opacity-50"
+        >
+          {checking ? "Checking all endpoints..." : "Refresh Health"}
+        </button>
+        {rpcManager.getPinnedEndpoint() && (
+          <button
+            onClick={() => {
+              rpcManager.pinEndpoint(null);
+              setActiveEndpoint(rpcManager.getBestEndpoint());
+            }}
+            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/60 text-sm font-medium transition-colors"
+          >
+            Resume Auto-Select
+          </button>
+        )}
+      </div>
     </div>
   );
 }
