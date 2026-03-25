@@ -1,8 +1,41 @@
-import { getAnalyticsSummary, getRecentEntries } from "@askstudio/dex";
+import type { AnalyticsSummary } from "@askstudio/dex";
+import type { AnalyticsEntry } from "@askstudio/dex";
 
-export default function AnalyticsPage() {
-  const summary = getAnalyticsSummary();
-  const recent = getRecentEntries(10);
+// Force dynamic rendering — analytics must not be stale from a build-time snapshot.
+export const dynamic = "force-dynamic";
+
+const EMPTY_SUMMARY: AnalyticsSummary = {
+  totalSwaps: 0,
+  totalVolumeInputLamports: 0,
+  totalVolumeOutputLamports: 0,
+  totalFeesLamports: 0,
+  averagePriceImpact: 0,
+  averageRouteCount: 0,
+  periodStart: 0,
+  periodEnd: 0,
+};
+
+export default async function AnalyticsPage() {
+  // Fetch from the admin app's own /api/analytics endpoint so the data path
+  // is consistent and can later be backed by a shared store without page changes.
+  const baseUrl =
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : `http://localhost:${process.env.PORT ?? 3001}`;
+
+  let summary: AnalyticsSummary = EMPTY_SUMMARY;
+  let recent: AnalyticsEntry[] = [];
+
+  try {
+    const res = await fetch(`${baseUrl}/api/analytics`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      summary = data.summary ?? EMPTY_SUMMARY;
+      recent = data.recent ?? [];
+    }
+  } catch {
+    // If the API is unreachable, render with empty data.
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">

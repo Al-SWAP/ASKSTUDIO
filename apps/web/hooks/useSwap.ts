@@ -73,9 +73,13 @@ export function useSwap() {
       } catch {
         // Legacy transaction fallback
         const legacyTx = Transaction.from(txBytes);
-        blockhash = legacyTx.recentBlockhash ?? (await connection.getLatestBlockhash()).blockhash;
-        lastValidBlockHeight =
-          apiLastValidBlockHeight ?? (await connection.getLatestBlockhash()).lastValidBlockHeight;
+        // Fetch blockhash once only — avoids two calls returning different blockhash contexts
+        const latestBh =
+          !legacyTx.recentBlockhash || !apiLastValidBlockHeight
+            ? await connection.getLatestBlockhash()
+            : null;
+        blockhash = legacyTx.recentBlockhash ?? latestBh!.blockhash;
+        lastValidBlockHeight = apiLastValidBlockHeight ?? latestBh!.lastValidBlockHeight;
 
         const signed = await signTransaction(legacyTx);
         signature = await connection.sendRawTransaction(signed.serialize(), {

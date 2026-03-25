@@ -1,9 +1,12 @@
 import { getFeeConfig } from "@askstudio/dex";
 import { rpcManager } from "@askstudio/web3";
 
+// Force dynamic rendering — live RPC checks must not be prerendered at build time.
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const feeConfig = getFeeConfig();
-  const rpcHealth = rpcManager.getAllHealth();
+  const rpcHealth = await rpcManager.checkAllHealth();
 
   return (
     <div className="space-y-8 max-w-4xl">

@@ -137,9 +137,12 @@ pub struct Initialize<'info> {
     )]
     pub config: Account<'info, ProtocolConfig>,
 
-    /// The treasury PDA that will receive fees. Created here so its address is
-    /// deterministic and verifiable by callers.
+    /// The treasury PDA that will receive fees. Created here so fee collection
+    /// works deterministically without requiring a separate setup step.
     #[account(
+        init,
+        payer = authority,
+        space = 0,
         seeds = [TREASURY_SEED, config.key().as_ref()],
         bump
     )]

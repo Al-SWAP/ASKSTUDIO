@@ -1,5 +1,6 @@
 import { env } from "@askstudio/config";
 import type { Token, RaydiumPoolRaw } from "./types";
+import { combineSignals } from "./utils";
 
 const FETCH_TIMEOUT_MS = 15_000;
 const KNOWN_SYMBOLS: Record<string, string> = {
@@ -12,7 +13,7 @@ export async function fetchRaydiumTokens(signal?: AbortSignal): Promise<Token[]>
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   const combined = signal
-    ? AbortSignal.any([signal, controller.signal])
+    ? combineSignals([signal, controller.signal])
     : controller.signal;
 
   try {

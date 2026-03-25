@@ -13,15 +13,20 @@ const PRICE_IMPACT_WEIGHT = 15;
 
 /**
  * AI Router scoring function.
- * score = outputScore - (priceImpact * weight) - (hopCount * penalty) + latencyBonus
+ * outputScore is normalized against maxOutAmount so the route with the largest
+ * real output amount scores 100; all others are scaled proportionally.
+ * When maxOutAmount is omitted (single-route evaluation) the route scores 100
+ * on the output dimension if outAmount > 0.
  */
-export function scoreRoute(route: SwapRoute, latencyMs?: number): RouteScore {
+export function scoreRoute(route: SwapRoute, latencyMs?: number, maxOutAmount?: number): RouteScore {
   const outAmount = parseFloat(route.outAmount);
   const priceImpact = parseFloat(route.priceImpactPct);
   const hopCount = route.routePlan?.length ?? 1;
   const slippageBps = route.slippageBps ?? 50;
 
-  const outputScore = outAmount > 0 ? Math.min(100, (1 / (1 + priceImpact)) * 100) : 0;
+  // Normalize output amount against the best candidate so larger real outputs score higher.
+  const ref = maxOutAmount ?? outAmount;
+  const outputScore = ref > 0 && outAmount > 0 ? Math.min(100, (outAmount / ref) * 100) : 0;
   const priceImpactScore = Math.max(0, 100 - priceImpact * PRICE_IMPACT_WEIGHT);
   const hopScore = Math.max(0, 100 - (hopCount - 1) * HOP_PENALTY);
   const latencyScore = latencyMs != null ? Math.max(0, 100 - latencyMs / 50) : 50;
@@ -42,8 +47,15 @@ export function scoreRoute(route: SwapRoute, latencyMs?: number): RouteScore {
 }
 
 export function sortRoutes(routes: SwapRoute[], latencyMs?: number): RouteScore[] {
+  // Compute the best outAmount among all candidates so each route's outputScore
+  // reflects its real quoted output relative to the best available route.
+  const maxOutAmount = routes.reduce((max, r) => {
+    const v = parseFloat(r.outAmount) || 0;
+    return v > max ? v : max;
+  }, 0);
+
   return routes
-    .map((route) => scoreRoute(route, latencyMs))
+    .map((route) => scoreRoute(route, latencyMs, maxOutAmount > 0 ? maxOutAmount : undefined))
     .sort((a, b) => b.score - a.score);
 }
 

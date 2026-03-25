@@ -43,5 +43,6 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*"],
+  // Protect all routes in the admin app, not just API routes.
+  matcher: ["/:path*"],
 };
