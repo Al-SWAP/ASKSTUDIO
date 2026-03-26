@@ -45,12 +45,18 @@ class RpcManager {
     const start = Date.now();
     const conn = this.getOrCreateConnection(endpoint);
 
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Health check timeout")), HEALTH_CHECK_TIMEOUT_MS)
+    // Resolve with a sentinel instead of rejecting so the losing branch of
+    // Promise.race cannot produce an unhandled rejection noise or crash.
+    const timeoutPromise = new Promise<"timeout">((resolve) =>
+      setTimeout(() => resolve("timeout"), HEALTH_CHECK_TIMEOUT_MS)
     );
 
     try {
-      await Promise.race([conn.getLatestBlockhash("finalized"), timeoutPromise]);
+      const result = await Promise.race([
+        conn.getLatestBlockhash("finalized").then(() => "ok" as const),
+        timeoutPromise,
+      ]);
+      if (result === "timeout") throw new Error("Health check timeout");
       const health: RpcHealth = {
         endpoint,
         latencyMs: Date.now() - start,

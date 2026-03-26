@@ -47,7 +47,8 @@ export interface RouteScore {
   score: number;
   breakdown: {
     outputScore: number;
-    feeScore: number;
+    /** Slippage-based penalty score (derived from slippageBps). */
+    slippageScore: number;
     priceImpactScore: number;
     latencyScore: number;
     hopScore: number;

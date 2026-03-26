@@ -52,16 +52,19 @@ export function useSwap() {
       const txBytes = base64ToUint8Array(swapTransaction);
 
       let signature: string;
-      let blockhash: string;
-      let lastValidBlockHeight: number;
+      // Coherent blockhash context for confirmation; null means fall back to commitment-only confirmation.
+      let confirmCtx: { blockhash: string; lastValidBlockHeight: number } | null = null;
 
       try {
         // Versioned transaction path
         const versionedTx = VersionedTransaction.deserialize(txBytes);
-        // Extract the blockhash that Jupiter embedded in the transaction
-        blockhash = versionedTx.message.recentBlockhash;
-        lastValidBlockHeight =
-          apiLastValidBlockHeight ?? (await connection.getLatestBlockhash()).lastValidBlockHeight;
+        const txBlockhash = versionedTx.message.recentBlockhash;
+
+        // Only use blockhash-based confirmation when the API provides a coherent
+        // lastValidBlockHeight for the same blockhash baked into the transaction.
+        if (apiLastValidBlockHeight !== undefined) {
+          confirmCtx = { blockhash: txBlockhash, lastValidBlockHeight: apiLastValidBlockHeight };
+        }
 
         const signed = await (signTransaction as (tx: VersionedTransaction) => Promise<VersionedTransaction>)(
           versionedTx
@@ -73,13 +76,15 @@ export function useSwap() {
       } catch {
         // Legacy transaction fallback
         const legacyTx = Transaction.from(txBytes);
-        // Fetch blockhash once only — avoids two calls returning different blockhash contexts
-        const latestBh =
-          !legacyTx.recentBlockhash || !apiLastValidBlockHeight
-            ? await connection.getLatestBlockhash()
-            : null;
-        blockhash = legacyTx.recentBlockhash ?? latestBh!.blockhash;
-        lastValidBlockHeight = apiLastValidBlockHeight ?? latestBh!.lastValidBlockHeight;
+
+        if (legacyTx.recentBlockhash && apiLastValidBlockHeight !== undefined) {
+          // Both values come from coherent sources (tx + API).
+          confirmCtx = { blockhash: legacyTx.recentBlockhash, lastValidBlockHeight: apiLastValidBlockHeight };
+        } else {
+          // Fetch once so blockhash and lastValidBlockHeight always come from the same RPC response.
+          const latestBh = await connection.getLatestBlockhash();
+          confirmCtx = { blockhash: latestBh.blockhash, lastValidBlockHeight: latestBh.lastValidBlockHeight };
+        }
 
         const signed = await signTransaction(legacyTx);
         signature = await connection.sendRawTransaction(signed.serialize(), {
@@ -88,11 +93,13 @@ export function useSwap() {
         });
       }
 
-      // Confirm against the same blockhash that is baked into the transaction
-      await connection.confirmTransaction(
-        { signature, blockhash, lastValidBlockHeight },
-        "confirmed"
-      );
+      // Confirm using a coherent blockhash + lastValidBlockHeight pair when available,
+      // otherwise fall back to commitment-only confirmation to avoid mismatched contexts.
+      if (confirmCtx) {
+        await connection.confirmTransaction({ signature, ...confirmCtx }, "confirmed");
+      } else {
+        await connection.confirmTransaction(signature, "confirmed");
+      }
 
       setTxSignature(signature);
 

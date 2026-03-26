@@ -5,7 +5,7 @@ const AI_WEIGHTS = {
   priceImpact: 0.25,
   hopCount: 0.15,
   latency: 0.10,
-  fee: 0.05,
+  slippage: 0.05,
 };
 
 const HOP_PENALTY = 8;
@@ -30,19 +30,20 @@ export function scoreRoute(route: SwapRoute, latencyMs?: number, maxOutAmount?: 
   const priceImpactScore = Math.max(0, 100 - priceImpact * PRICE_IMPACT_WEIGHT);
   const hopScore = Math.max(0, 100 - (hopCount - 1) * HOP_PENALTY);
   const latencyScore = latencyMs != null ? Math.max(0, 100 - latencyMs / 50) : 50;
-  const feeScore = Math.max(0, 100 - slippageBps / 5);
+  // Slippage-based penalty: lower slippage tolerance scores higher.
+  const slippageScore = Math.max(0, 100 - slippageBps / 5);
 
   const score =
     outputScore * AI_WEIGHTS.output +
     priceImpactScore * AI_WEIGHTS.priceImpact +
     hopScore * AI_WEIGHTS.hopCount +
     latencyScore * AI_WEIGHTS.latency +
-    feeScore * AI_WEIGHTS.fee;
+    slippageScore * AI_WEIGHTS.slippage;
 
   return {
     route: { ...route, score },
     score,
-    breakdown: { outputScore, feeScore, priceImpactScore, latencyScore, hopScore },
+    breakdown: { outputScore, slippageScore, priceImpactScore, latencyScore, hopScore },
   };
 }
 

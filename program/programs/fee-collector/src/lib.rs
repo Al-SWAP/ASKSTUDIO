@@ -1,9 +1,10 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 
-// Replace with the real program keypair public key before deploying.
+// NOTE: Replace with the real deployed program keypair before going to mainnet.
 // Generate with: solana-keygen new --outfile fee-collector-keypair.json
-declare_id!("FeeCoLL3CToRPLACEHOLDER11111111111111111111");
+// Then update both this declare_id! and [programs.localnet] in Anchor.toml.
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 /// Seed used to derive the treasury PDA.
 pub const TREASURY_SEED: &[u8] = b"treasury";

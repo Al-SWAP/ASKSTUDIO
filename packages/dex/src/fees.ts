@@ -33,6 +33,9 @@ export function setFeeConfig(config: Partial<FeeConfig>): FeeConfig {
     _config.recipient = trimmed;
   }
   if (config.enabled !== undefined) {
+    if (config.enabled && !BASE58_PUBKEY_RE.test(_config.recipient)) {
+      throw new Error("Cannot enable fees: recipient is not a valid base58 Solana public key");
+    }
     _config.enabled = config.enabled;
   }
   return getFeeConfig();
@@ -53,9 +56,10 @@ export function feeBpsToPercent(bps: number): string {
 
 /**
  * Returns Jupiter platform fee BPS to embed in quote request.
- * When the fee is disabled, returns 0.
+ * Returns 0 when fees are disabled or when the recipient is not a valid base58 key,
+ * preventing a state where fees appear enabled but the swap API would reject the account.
  */
 export function getPlatformFeeBps(): number {
-  if (!_config.enabled) return 0;
+  if (!_config.enabled || !BASE58_PUBKEY_RE.test(_config.recipient)) return 0;
   return _config.bps;
 }
