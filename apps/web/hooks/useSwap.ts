@@ -103,17 +103,18 @@ export function useSwap() {
 
       setTxSignature(signature);
 
-      // Record analytics on the server so the admin dashboard can see them
+      // Record analytics on the server so the admin dashboard can see them.
+      // Amounts are kept as strings to avoid Number.MAX_SAFE_INTEGER precision loss on u64 values.
       fetch("/api/analytics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           inputMint: route.inputMint,
           outputMint: route.outputMint,
-          inputAmount: parseInt(route.inAmount, 10),
-          outputAmount: parseInt(route.outAmount, 10),
+          inputAmount: route.inAmount,
+          outputAmount: route.outAmount,
           feeBps: route.platformFee?.feeBps ?? 0,
-          feeAmountLamports: route.platformFee ? parseInt(route.platformFee.amount, 10) : 0,
+          feeAmountLamports: route.platformFee?.amount ?? "0",
           signature,
           priceImpactPct: parseFloat(route.priceImpactPct),
           routeCount: route.routePlan?.length ?? 1,

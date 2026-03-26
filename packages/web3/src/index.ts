@@ -4,3 +4,4 @@ export { validatePublicKey, truncateAddress, getSolBalance } from "./wallet";
 export type { WalletInfo } from "./wallet";
 export { listenForSwapConfirmation, waitForConfirmation } from "./events";
 export type { SwapEventCallback, SwapEventSubscription } from "./events";
+export { combineSignals } from "./utils";

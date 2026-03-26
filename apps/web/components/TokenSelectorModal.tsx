@@ -12,11 +12,29 @@ interface TokenSelectorModalProps {
 export function TokenSelectorModal({ tokens, onSelect, onClose }: TokenSelectorModalProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const titleId = "token-selector-title";
 
   useEffect(() => {
     inputRef.current?.focus();
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      // Focus trap: keep focus inside the modal while it is open.
+      if (e.key === "Tab" && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        } else {
+          if (document.activeElement === last) { e.preventDefault(); first?.focus(); }
+        }
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
@@ -38,10 +56,16 @@ export function TokenSelectorModal({ tokens, onSelect, onClose }: TokenSelectorM
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md glass rounded-2xl overflow-hidden shadow-2xl animate-slide-up">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative w-full max-w-md glass rounded-2xl overflow-hidden shadow-2xl animate-slide-up"
+      >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h3 className="text-white font-semibold">Select Token</h3>
+          <h3 id={titleId} className="text-white font-semibold">Select Token</h3>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"

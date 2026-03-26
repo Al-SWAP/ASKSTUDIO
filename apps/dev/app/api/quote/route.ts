@@ -29,15 +29,20 @@ export async function GET(req: NextRequest) {
     swapMode: "ExactIn",
   });
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
   try {
     const res = await fetch(`${env.JUPITER_API}/quote?${params}`, {
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(10_000),
+      signal: controller.signal,
     });
     if (!res.ok) return NextResponse.json({ error: await res.text() }, { status: res.status });
     const data = await res.json();
     return NextResponse.json(data);
   } catch (err: unknown) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Failed" }, { status: 500 });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

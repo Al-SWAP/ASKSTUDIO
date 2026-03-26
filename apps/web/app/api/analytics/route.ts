@@ -30,10 +30,13 @@ export async function POST(req: NextRequest) {
     feeBps, feeAmountLamports, signature, priceImpactPct, routeCount,
   } = body;
 
+  // Amounts are sent as strings to preserve u64 precision.
+  const isUint64String = (v: unknown) => typeof v === "string" && /^\d+$/.test(v);
+
   if (
     typeof inputMint !== "string" || typeof outputMint !== "string" ||
-    typeof inputAmount !== "number" || typeof outputAmount !== "number" ||
-    typeof feeBps !== "number" || typeof feeAmountLamports !== "number" ||
+    !isUint64String(inputAmount) || !isUint64String(outputAmount) ||
+    typeof feeBps !== "number" || !isUint64String(feeAmountLamports) ||
     typeof signature !== "string" || typeof priceImpactPct !== "number" ||
     typeof routeCount !== "number"
   ) {
@@ -41,8 +44,15 @@ export async function POST(req: NextRequest) {
   }
 
   const entry = recordSwap({
-    inputMint, outputMint, inputAmount, outputAmount,
-    feeBps, feeAmountLamports, signature, priceImpactPct, routeCount,
+    inputMint: inputMint as string,
+    outputMint: outputMint as string,
+    inputAmount: inputAmount as string,
+    outputAmount: outputAmount as string,
+    feeBps: feeBps as number,
+    feeAmountLamports: feeAmountLamports as string,
+    signature: signature as string,
+    priceImpactPct: priceImpactPct as number,
+    routeCount: routeCount as number,
   });
 
   return NextResponse.json({ id: entry.id }, { status: 201 });

@@ -90,10 +90,13 @@ export interface AnalyticsEntry {
   timestamp: number;
   inputMint: string;
   outputMint: string;
-  inputAmount: number;
-  outputAmount: number;
+  /** Input amount as a string to preserve u64 precision (can exceed Number.MAX_SAFE_INTEGER). */
+  inputAmount: string;
+  /** Output amount as a string to preserve u64 precision. */
+  outputAmount: string;
   feeBps: number;
-  feeAmountLamports: number;
+  /** Fee amount as a string to preserve u64 precision. */
+  feeAmountLamports: string;
   signature?: string;
   priceImpactPct: number;
   routeCount: number;

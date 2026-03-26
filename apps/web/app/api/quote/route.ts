@@ -42,10 +42,17 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(`${env.JUPITER_API}/quote?${params.toString()}`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(QUOTE_TIMEOUT_MS),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), QUOTE_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(`${env.JUPITER_API}/quote?${params.toString()}`, {
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!res.ok) {
       const errText = await res.text();

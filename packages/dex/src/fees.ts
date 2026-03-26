@@ -17,8 +17,8 @@ export function getFeeConfig(): FeeConfig {
 
 export function setFeeConfig(config: Partial<FeeConfig>): FeeConfig {
   if (config.bps !== undefined) {
-    if (config.bps < MIN_FEE_BPS || config.bps > MAX_FEE_BPS) {
-      throw new Error(`Fee BPS must be between ${MIN_FEE_BPS} and ${MAX_FEE_BPS}`);
+    if (!Number.isFinite(config.bps) || config.bps < MIN_FEE_BPS || config.bps > MAX_FEE_BPS) {
+      throw new Error(`Fee BPS must be a finite number between ${MIN_FEE_BPS} and ${MAX_FEE_BPS}`);
     }
     _config.bps = config.bps;
   }

@@ -42,12 +42,19 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(`${env.JUPITER_SWAP_API}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify(swapPayload),
-      signal: AbortSignal.timeout(SWAP_TIMEOUT_MS),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), SWAP_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(`${env.JUPITER_SWAP_API}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(swapPayload),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!res.ok) {
       const errText = await res.text();

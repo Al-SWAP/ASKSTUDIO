@@ -11,7 +11,10 @@ export const env = {
   // FEE_RESERVE must be a valid base58 SPL token account (ATA) for the fee mint.
   // Leave empty to disable platform fees in default/local setups.
   FEE_RESERVE: process.env.NEXT_PUBLIC_FEE_RESERVE ?? "",
-  DEFAULT_FEE_BPS: parseInt(process.env.NEXT_PUBLIC_DEFAULT_FEE_BPS ?? "20", 10),
+  DEFAULT_FEE_BPS: (() => {
+    const v = parseInt(process.env.NEXT_PUBLIC_DEFAULT_FEE_BPS ?? "20", 10);
+    return Number.isFinite(v) ? v : 20;
+  })(),
   ADMIN_WALLET_WHITELIST: (process.env.ADMIN_WALLET_WHITELIST ?? "").split(",").filter(Boolean),
 } as const;
 

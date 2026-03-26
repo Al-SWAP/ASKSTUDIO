@@ -15,18 +15,23 @@ const PRICE_IMPACT_WEIGHT = 15;
  * AI Router scoring function.
  * outputScore is normalized against maxOutAmount so the route with the largest
  * real output amount scores 100; all others are scaled proportionally.
- * When maxOutAmount is omitted (single-route evaluation) the route scores 100
- * on the output dimension if outAmount > 0.
+ * BigInt is used for amount comparison to avoid JS floating-point precision loss
+ * on u64-sized values. The ratio is computed in integer arithmetic scaled to 100.
  */
-export function scoreRoute(route: SwapRoute, latencyMs?: number, maxOutAmount?: number): RouteScore {
-  const outAmount = parseFloat(route.outAmount);
+export function scoreRoute(route: SwapRoute, latencyMs?: number, maxOutAmountStr?: string): RouteScore {
+  // Parse amounts as BigInt to handle u64 values without precision loss.
+  const outAmountBig = BigInt(route.outAmount || "0");
+  const maxBig = maxOutAmountStr ? BigInt(maxOutAmountStr) : outAmountBig;
+
+  // Compute outputScore as integer ratio scaled by 100 (preserves two decimal places).
+  const outputScore = maxBig > 0n && outAmountBig > 0n
+    ? Math.min(100, Number((outAmountBig * 10000n) / maxBig) / 100)
+    : 0;
+
   const priceImpact = parseFloat(route.priceImpactPct);
   const hopCount = route.routePlan?.length ?? 1;
   const slippageBps = route.slippageBps ?? 50;
 
-  // Normalize output amount against the best candidate so larger real outputs score higher.
-  const ref = maxOutAmount ?? outAmount;
-  const outputScore = ref > 0 && outAmount > 0 ? Math.min(100, (outAmount / ref) * 100) : 0;
   const priceImpactScore = Math.max(0, 100 - priceImpact * PRICE_IMPACT_WEIGHT);
   const hopScore = Math.max(0, 100 - (hopCount - 1) * HOP_PENALTY);
   const latencyScore = latencyMs != null ? Math.max(0, 100 - latencyMs / 50) : 50;
@@ -48,15 +53,15 @@ export function scoreRoute(route: SwapRoute, latencyMs?: number, maxOutAmount?: 
 }
 
 export function sortRoutes(routes: SwapRoute[], latencyMs?: number): RouteScore[] {
-  // Compute the best outAmount among all candidates so each route's outputScore
-  // reflects its real quoted output relative to the best available route.
-  const maxOutAmount = routes.reduce((max, r) => {
-    const v = parseFloat(r.outAmount) || 0;
+  // Compute the best outAmount using BigInt comparison to avoid precision loss on u64 values.
+  const maxOutAmountBig = routes.reduce((max, r) => {
+    const v = BigInt(r.outAmount || "0");
     return v > max ? v : max;
-  }, 0);
+  }, 0n);
+  const maxOutAmountStr = maxOutAmountBig > 0n ? maxOutAmountBig.toString() : undefined;
 
   return routes
-    .map((route) => scoreRoute(route, latencyMs, maxOutAmount > 0 ? maxOutAmount : undefined))
+    .map((route) => scoreRoute(route, latencyMs, maxOutAmountStr))
     .sort((a, b) => b.score - a.score);
 }
 

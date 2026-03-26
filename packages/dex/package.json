@@ -12,7 +12,8 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@askstudio/config": "workspace:*"
+    "@askstudio/config": "workspace:*",
+    "@askstudio/web3": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

@@ -1,23 +1,11 @@
 import { env } from "@askstudio/config";
+import { combineSignals } from "@askstudio/web3";
 import type { QuoteParams, SwapRoute, SwapParams, SwapTransaction } from "./types";
 
 const QUOTE_TIMEOUT_MS = 10_000;
 const SWAP_TIMEOUT_MS = 15_000;
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 500;
-
-function combineSignals(signals: AbortSignal[]): AbortSignal {
-  // Use native AbortSignal.any when available (Node 20+), otherwise polyfill
-  if (typeof AbortSignal.any === "function") {
-    return AbortSignal.any(signals);
-  }
-  const controller = new AbortController();
-  for (const signal of signals) {
-    if (signal.aborted) { controller.abort(signal.reason); return controller.signal; }
-    signal.addEventListener("abort", () => controller.abort(signal.reason), { once: true });
-  }
-  return controller.signal;
-}
 
 async function fetchWithRetry(
   url: string,

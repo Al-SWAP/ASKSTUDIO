@@ -79,6 +79,8 @@ export function useQuote() {
     debounceRef.current = setTimeout(fetchQuote, DEBOUNCE_MS);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      // Abort any in-flight fetch so state updates don't run after unmount.
+      if (abortRef.current) abortRef.current.abort();
     };
   }, [fetchQuote]);
 

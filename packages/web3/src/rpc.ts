@@ -47,15 +47,18 @@ class RpcManager {
 
     // Resolve with a sentinel instead of rejecting so the losing branch of
     // Promise.race cannot produce an unhandled rejection noise or crash.
-    const timeoutPromise = new Promise<"timeout">((resolve) =>
-      setTimeout(() => resolve("timeout"), HEALTH_CHECK_TIMEOUT_MS)
-    );
+    // The timeoutId is always cleared so lingering timers don't build up.
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const timeoutPromise = new Promise<"timeout">((resolve) => {
+      timeoutId = setTimeout(() => resolve("timeout"), HEALTH_CHECK_TIMEOUT_MS);
+    });
 
     try {
       const result = await Promise.race([
         conn.getLatestBlockhash("finalized").then(() => "ok" as const),
         timeoutPromise,
       ]);
+      clearTimeout(timeoutId!);
       if (result === "timeout") throw new Error("Health check timeout");
       const health: RpcHealth = {
         endpoint,
@@ -66,6 +69,7 @@ class RpcManager {
       this.healthMap.set(endpoint, health);
       return health;
     } catch {
+      clearTimeout(timeoutId!);
       const health: RpcHealth = {
         endpoint,
         latencyMs: Infinity,

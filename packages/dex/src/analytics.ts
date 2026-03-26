@@ -37,9 +37,17 @@ export function getAnalyticsSummary(sinceMs?: number): AnalyticsSummary {
   const from = sinceMs ?? 0;
   const filtered = _entries.filter((e) => e.timestamp >= from);
 
-  const totalVolumeInputLamports = filtered.reduce((acc, e) => acc + e.inputAmount, 0);
-  const totalVolumeOutputLamports = filtered.reduce((acc, e) => acc + e.outputAmount, 0);
-  const totalFeesLamports = filtered.reduce((acc, e) => acc + e.feeAmountLamports, 0);
+  // Use BigInt to accumulate u64-sized amounts without intermediate precision loss.
+  // Convert to Number at the boundary for display/API serialization (acceptable approximation).
+  const totalVolumeInputLamports = Number(
+    filtered.reduce((acc, e) => acc + BigInt(e.inputAmount), 0n)
+  );
+  const totalVolumeOutputLamports = Number(
+    filtered.reduce((acc, e) => acc + BigInt(e.outputAmount), 0n)
+  );
+  const totalFeesLamports = Number(
+    filtered.reduce((acc, e) => acc + BigInt(e.feeAmountLamports), 0n)
+  );
   const totalPriceImpact = filtered.reduce((acc, e) => acc + e.priceImpactPct, 0);
   const totalRouteCount = filtered.reduce((acc, e) => acc + e.routeCount, 0);
 

@@ -5,6 +5,8 @@ import bs58 from "bs58";
 
 /** Maximum age of a signed message before it is rejected as a replay. */
 const MESSAGE_TTL_MS = 5 * 60 * 1_000; // 5 minutes
+/** Maximum allowed clock skew (future-dated messages beyond this are rejected). */
+const CLOCK_SKEW_MS = 30_000; // 30 seconds
 
 /**
  * Verifies that the wallet signed the provided message AND that the message is
@@ -44,7 +46,11 @@ function verifyWalletSignature(req: NextRequest, wallet: string): boolean {
   try {
     const parsed = JSON.parse(message) as Record<string, unknown>;
     if (typeof parsed.timestamp !== "number") return false;
-    if (Date.now() - parsed.timestamp > MESSAGE_TTL_MS) return false;
+    const now = Date.now();
+    // Reject messages older than the TTL (replay protection).
+    if (now - parsed.timestamp > MESSAGE_TTL_MS) return false;
+    // Reject messages signed with a future timestamp (bypass via future-dating).
+    if (parsed.timestamp > now + CLOCK_SKEW_MS) return false;
   } catch {
     // Message is not valid JSON — reject; plain-string messages cannot prove freshness.
     return false;
