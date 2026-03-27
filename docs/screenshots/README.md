@@ -2,34 +2,36 @@
 
 This directory contains UI/UX screenshots of the AskStudio applications.
 
+## Current Screenshots
+
+| Filename | App | Screen |
+|---|---|---|
+| `swap-interface.svg` | `apps/web` | Main swap card with token inputs, route info, and slippage control |
+| `token-selector.svg` | `apps/web` | Token selector modal with search and source badges |
+| `swap-confirmed.svg` | `apps/web` | Swap card after a successful transaction with Solscan link |
+| `admin-dashboard.svg` | `apps/admin` | Admin dashboard — fee config + RPC health overview |
+| `admin-analytics.svg` | `apps/admin` | Analytics page — stat cards + recent swaps table |
+| `admin-rpc.svg` | `apps/admin` | RPC Health Monitor — endpoint status + latency + pin control |
+| `admin-tokens.svg` | `apps/admin` | Token Management — blacklist view + add/remove form |
+| `dev-tools.svg` | `apps/dev` | Developer tools home — tool grid + terminal |
+
 ## Naming Convention
 
 Screenshots should be named descriptively using lowercase and hyphens:
 
 ```
-<app>-<screen-or-feature>.png
+<app>-<screen-or-feature>.svg
 ```
 
-## Required Screenshots
+## Adding Real Screenshots
 
-The following screenshots are referenced in the root [`README.md`](../../README.md):
+To replace the SVG mockups with real browser screenshots:
 
-| Filename | App | Description |
-|---|---|---|
-| `swap-interface.png` | `apps/web` | Main swap card with token inputs and quote |
-| `route-details.png` | `apps/web` | Expanded route information panel |
-| `token-selector.png` | `apps/web` | Token selector modal with search |
-| `admin-dashboard.png` | `apps/admin` | Admin dashboard showing fee config and RPC health |
-| `dev-tools.png` | `apps/dev` | Developer tools page |
-
-## Adding Screenshots
-
-1. Run the application locally (`pnpm dev`).
-2. Navigate to the relevant screen.
-3. Take a screenshot at **1280×800** resolution (or higher) in light or dark mode.
-4. Save as a `.png` file using the naming convention above.
-5. Place the file in this directory.
-6. Commit the file and open a pull request.
+1. Run `pnpm dev` to start the development servers.
+2. Navigate to the relevant screen in your browser.
+3. Take a screenshot at **1280×800** resolution.
+4. Save as a `.png` file (e.g. `swap-interface.png`).
+5. Update the `README.md` references from `.svg` to `.png`.
 
 ## Mobile Screenshots
 

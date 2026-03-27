@@ -11,7 +11,7 @@
 [![Turborepo](https://img.shields.io/badge/Turborepo-2.0-EF4444?logo=turborepo)](https://turbo.build/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-[Features](#-features) · [Architecture](#️-architecture) · [Screenshots](#-screenshots) · [Getting Started](#-getting-started) · [Configuration](#-configuration) · [Contributing](#-contributing)
+[Features](#-features) · [Architecture](#️-architecture) · [Screenshots](#-screenshots) · [Getting Started](#-getting-started) · [Configuration](#-configuration) · [User Guide](docs/USER_GUIDE.md) · [Contributing](#-contributing)
 
 </div>
 
@@ -92,22 +92,31 @@ apps/web  apps/admin  apps/dev
 
 ## 📸 Screenshots
 
-> Screenshots are stored in [`docs/screenshots/`](docs/screenshots/).
+> Full UI/UX screenshots and a step-by-step [User Guide](docs/USER_GUIDE.md) are available in the [`docs/`](docs/) directory.
 
-### Swap Interface (Web)
-![Swap Interface](docs/screenshots/swap-interface.png)
-
-### Route Details
-![Route Details](docs/screenshots/route-details.png)
+### Swap Interface (Web — `localhost:3000`)
+![Swap Interface](docs/screenshots/swap-interface.svg)
 
 ### Token Selector
-![Token Selector](docs/screenshots/token-selector.png)
+![Token Selector](docs/screenshots/token-selector.svg)
 
-### Admin Dashboard
-![Admin Dashboard](docs/screenshots/admin-dashboard.png)
+### Swap Confirmed
+![Swap Confirmed](docs/screenshots/swap-confirmed.svg)
 
-### Developer Tools
-![Developer Tools](docs/screenshots/dev-tools.png)
+### Admin Dashboard (`localhost:3001/admin`)
+![Admin Dashboard](docs/screenshots/admin-dashboard.svg)
+
+### Admin — Analytics
+![Admin Analytics](docs/screenshots/admin-analytics.svg)
+
+### Admin — RPC Health Monitor
+![Admin RPC Health](docs/screenshots/admin-rpc.svg)
+
+### Admin — Token Blacklist Management
+![Admin Tokens](docs/screenshots/admin-tokens.svg)
+
+### Developer Tools (`localhost:3002/dev`)
+![Developer Tools](docs/screenshots/dev-tools.svg)
 
 ---
 
@@ -298,6 +307,8 @@ Quick summary:
 3. Make your changes, keeping them focused on a single concern.
 4. Run `pnpm type-check && pnpm lint` to validate your changes.
 5. Open a pull request with a clear title and description.
+
+For detailed usage information, see the [User Guide](docs/USER_GUIDE.md).
 
 ---
 

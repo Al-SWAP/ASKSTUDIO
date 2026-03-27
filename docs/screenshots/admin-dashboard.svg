@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#050508"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="800" fill="url(#bg)"/>
+
+  <!-- ── TOP NAV BAR ─────────────────────────────────────────────────── -->
+  <rect x="0" y="30" width="1280" height="52" fill="#111827" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="24" y="63" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="700" fill="#a78bfa">AskStudio Admin</text>
+  <!-- Nav links -->
+  <text x="180" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="white">Dashboard</text>
+  <text x="268" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">RPC Health</text>
+  <text x="360" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">Tokens</text>
+  <text x="424" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">Analytics</text>
+  <!-- active indicator -->
+  <rect x="175" y="78" width="76" height="2" rx="1" fill="#a78bfa"/>
+
+  <!-- Page title -->
+  <text x="24" y="122" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="700" fill="white">Admin Dashboard</text>
+
+  <!-- ── FEE CONFIGURATION SECTION ──────────────────────────────────── -->
+  <rect x="24" y="138" width="612" height="188" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="44" y="168" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="600" fill="white">Fee Configuration</text>
+
+  <!-- Current Fee BPS card -->
+  <rect x="44" y="182" width="270" height="90" rx="10" fill="rgba(255,255,255,0.04)"/>
+  <text x="60" y="206" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.5)">Current Fee BPS</text>
+  <text x="60" y="246" font-family="Inter,system-ui,sans-serif" font-size="36" font-weight="700" fill="#a78bfa">20</text>
+  <text x="60" y="266" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.3)">0.20% per swap</text>
+
+  <!-- Fee Recipient card -->
+  <rect x="330" y="182" width="290" height="90" rx="10" fill="rgba(255,255,255,0.04)"/>
+  <text x="346" y="206" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.5)">Fee Recipient</text>
+  <text x="346" y="228" font-family="Inter,system-ui,sans-serif" font-size="11" font-family="monospace" fill="white">7xKpBnm3Rf9qT2cD…4mRt</text>
+  <rect x="346" y="238" width="56" height="18" rx="5" fill="rgba(34,197,94,0.15)"/>
+  <text x="374" y="251" font-family="Inter,system-ui,sans-serif" font-size="10" fill="#4ade80" text-anchor="middle">Enabled</text>
+
+  <text x="44" y="314" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.3)">
+    Use POST /api/fee to update fee configuration.
+  </text>
+
+  <!-- ── RPC HEALTH SECTION ─────────────────────────────────────────── -->
+  <rect x="24" y="342" width="612" height="248" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="44" y="374" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="600" fill="white">RPC Health</text>
+
+  <!-- Endpoint 1 — healthy -->
+  <rect x="44" y="386" width="572" height="52" rx="10" fill="rgba(255,255,255,0.04)"/>
+  <text x="60" y="407" font-family="Inter,system-ui,sans-serif" font-size="12" font-family="monospace" fill="rgba(255,255,255,0.7)">https://api.mainnet-beta.solana.com</text>
+  <rect x="504" y="396" width="64" height="20" rx="10" fill="rgba(34,197,94,0.15)"/>
+  <text x="536" y="410" font-family="Inter,system-ui,sans-serif" font-size="10" fill="#4ade80" text-anchor="middle">Healthy</text>
+  <text x="600" y="408" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">87ms</text>
+  <text x="60" y="426" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.3)">Primary endpoint · auto-rotate every 30s</text>
+
+  <!-- Endpoint 2 — healthy -->
+  <rect x="44" y="448" width="572" height="52" rx="10" fill="rgba(255,255,255,0.04)"/>
+  <text x="60" y="469" font-family="Inter,system-ui,sans-serif" font-size="12" font-family="monospace" fill="rgba(255,255,255,0.7)">https://rpc.ankr.com/solana</text>
+  <rect x="504" y="458" width="64" height="20" rx="10" fill="rgba(34,197,94,0.15)"/>
+  <text x="536" y="472" font-family="Inter,system-ui,sans-serif" font-size="10" fill="#4ade80" text-anchor="middle">Healthy</text>
+  <text x="600" y="470" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">124ms</text>
+  <text x="60" y="488" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.3)">Fallback endpoint</text>
+
+  <!-- Endpoint 3 — unhealthy -->
+  <rect x="44" y="510" width="572" height="52" rx="10" fill="rgba(255,255,255,0.04)"/>
+  <text x="60" y="531" font-family="Inter,system-ui,sans-serif" font-size="12" font-family="monospace" fill="rgba(255,255,255,0.7)">https://solana.public-rpc.com</text>
+  <rect x="498" y="520" width="70" height="20" rx="10" fill="rgba(239,68,68,0.15)"/>
+  <text x="533" y="534" font-family="Inter,system-ui,sans-serif" font-size="10" fill="#f87171" text-anchor="middle">Unhealthy</text>
+  <text x="600" y="532" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">—</text>
+  <text x="60" y="550" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.3)">Backup endpoint · timeout exceeded</text>
+
+  <!-- ── RIGHT COLUMN: Quick actions ──────────────────────────────────  -->
+  <rect x="660" y="138" width="596" height="452" rx="14" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="680" y="170" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="600" fill="white">Quick Actions</text>
+
+  <!-- Update Fee tile -->
+  <rect x="680" y="186" width="268" height="88" rx="12" fill="rgba(147,51,234,0.08)" stroke="rgba(147,51,234,0.2)" stroke-width="1"/>
+  <text x="698" y="212" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#c084fc">Update Fee BPS</text>
+  <text x="698" y="232" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">POST /api/fee</text>
+  <text x="698" y="252" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.25)">{ bps: number, recipient: string }</text>
+  <text x="698" y="264" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.25)">Min: 0 BPS  Max: 200 BPS</text>
+
+  <!-- Token Blacklist tile -->
+  <rect x="968" y="186" width="268" height="88" rx="12" fill="rgba(239,68,68,0.06)" stroke="rgba(239,68,68,0.2)" stroke-width="1"/>
+  <text x="986" y="212" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#f87171">Token Blacklist</text>
+  <text x="986" y="232" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">POST /api/tokens</text>
+  <text x="986" y="252" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.25)">{ action: "blacklist"|"unblacklist",</text>
+  <text x="986" y="264" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.25)">  mint: "…base58…" }</text>
+
+  <!-- Analytics summary tile -->
+  <rect x="680" y="290" width="556" height="88" rx="12" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="698" y="316" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="white">Analytics Snapshot</text>
+  <!-- 3 stats -->
+  <text x="698" y="348" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Total Swaps</text>
+  <text x="698" y="366" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="700" fill="white">1,284</text>
+  <text x="860" y="348" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Volume (lamports)</text>
+  <text x="860" y="366" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="700" fill="#a78bfa">9,483,210,000</text>
+  <text x="1090" y="348" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Fees Collected</text>
+  <text x="1090" y="366" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="700" fill="#4ade80">18,966,420</text>
+
+  <!-- Docs/API reference tile -->
+  <rect x="680" y="394" width="556" height="88" rx="12" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="698" y="420" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="white">API Reference</text>
+  <text x="698" y="440" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">
+    GET  /admin/api/health    ·  POST /admin/api/fee    ·  POST /admin/api/tokens
+  </text>
+  <text x="698" y="458" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">
+    GET  /admin/api/rpc       ·  GET  /admin/api/analytics
+  </text>
+  <text x="698" y="472" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.25)">All endpoints require valid wallet signature header (ed25519).</text>
+
+  <!-- Browser chrome -->
+  <rect x="0" y="0" width="1280" height="30" fill="rgba(0,0,0,0.6)"/>
+  <circle cx="18" cy="15" r="6" fill="#ff5f57"/>
+  <circle cx="38" cy="15" r="6" fill="#febc2e"/>
+  <circle cx="58" cy="15" r="6" fill="#28c840"/>
+  <rect x="200" y="7" width="880" height="16" rx="8" fill="rgba(255,255,255,0.08)"/>
+  <text x="640" y="19" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)" text-anchor="middle">localhost:3001/admin</text>
+</svg>
