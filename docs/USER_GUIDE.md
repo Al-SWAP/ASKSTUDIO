@@ -426,10 +426,10 @@ Every admin API call must include the following HTTP headers:
 ```
 x-wallet-address:   <base58-encoded wallet address>
 x-wallet-signature: <base58-encoded ed25519 signature over x-wallet-message>
-x-wallet-message:   <JSON string: { "timestamp": <unix-ms>, "domain": "<host>" }>
+x-wallet-message:   {"timestamp":1720000000000,"domain":"localhost:3001"}
 ```
 
-The timestamp must be within 5 minutes of the server's current time.
+The `x-wallet-message` value is a **plain JSON string** (not base64). Replace the `timestamp` with the current Unix time in milliseconds and `domain` with the server host. The timestamp must be within 5 minutes of the server's current time.
 
 ---
 
