@@ -11,7 +11,7 @@
 [![Turborepo](https://img.shields.io/badge/Turborepo-2.0-EF4444?logo=turborepo)](https://turbo.build/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-[Features](#-features) · [Architecture](#️-architecture) · [Screenshots](#-screenshots) · [Getting Started](#-getting-started) · [Configuration](#-configuration) · [User Guide](docs/USER_GUIDE.md) · [Contributing](#-contributing)
+[Features](#-features) · [Architecture](#-architecture) · [Screenshots](#-screenshots) · [Getting Started](#-getting-started) · [Configuration](#-configuration) · [User Guide](docs/USER_GUIDE.md) · [Contributing](#-contributing)
 
 </div>
 
@@ -103,7 +103,7 @@ apps/web  apps/admin  apps/dev
 ### Swap Confirmed
 ![Swap Confirmed](docs/screenshots/swap-confirmed.svg)
 
-### Admin Dashboard (`localhost:3001/admin`)
+### Admin Dashboard (`localhost:3001`)
 ![Admin Dashboard](docs/screenshots/admin-dashboard.svg)
 
 ### Admin — Analytics
@@ -115,7 +115,7 @@ apps/web  apps/admin  apps/dev
 ### Admin — Token Blacklist Management
 ![Admin Tokens](docs/screenshots/admin-tokens.svg)
 
-### Developer Tools (`localhost:3002/dev`)
+### Developer Tools (`localhost:3002`)
 ![Developer Tools](docs/screenshots/dev-tools.svg)
 
 ---
@@ -284,7 +284,9 @@ The Anchor **fee-collector** program at `program/programs/fee-collector/` handle
 | `collect_fee(amount_lamports)` | Transfers SOL from payer → treasury; emits `FeeCollected` event |
 | `forward_fees()` | Authority-only — forwards accumulated fees to `fee_reserve` |
 
-**Program ID**: `Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS`
+**Default dev/local Program ID (example only)**: `Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS`
+
+> ⚠️ This Program ID is intended for **localnet/devnet** development. It is **not** the canonical mainnet address. For your own deployments (including mainnet), use the Program ID printed by `anchor deploy` and update `declare_id!()` in `program/programs/fee-collector/src/lib.rs` and your `Anchor.toml` accordingly.
 
 To build and deploy the program:
 

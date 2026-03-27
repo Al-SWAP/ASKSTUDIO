@@ -118,12 +118,12 @@ Display Solscan link
 
 ## RPC Failover Strategy
 
-`RpcManager` in `@askstudio/web3` manages three RPC endpoints:
+`RpcManager` in `@askstudio/web3` manages multiple RPC endpoints:
 
-1. **Health check** — each endpoint is pinged with a 5-second timeout on startup and periodically.
-2. **Round-robin rotation** — the active endpoint rotates every 30 seconds among healthy endpoints.
-3. **Pinned endpoint** — `pinEndpoint()` / `getPinnedEndpoint()` allow the admin app to force a specific endpoint.
-4. **Fallback on error** — if a request fails, the manager automatically retries on the next healthy endpoint.
+1. **Health check** — endpoint health is evaluated when `checkAllHealth()` is called, using a 5-second timeout per endpoint. Callers are responsible for scheduling health checks (for example, on startup or via an external scheduler).
+2. **Round-robin rotation** — `getBestEndpoint()` advances the active index every 30 seconds among currently-healthy endpoints. The rotation is time-based (triggered by successive calls) rather than on an independent timer.
+3. **Pinned endpoint** — `switchEndpoint()` pins a specific endpoint for all subsequent connections. The pin is automatically released if the endpoint is found to be unhealthy during `getBestEndpoint()`.
+4. **Fallback on error** — if the pinned endpoint becomes unhealthy, `getBestEndpoint()` falls back to round-robin across the remaining healthy pool.
 5. **Sentinel-based timeout** — `Promise.race()` with a sentinel value avoids unhandled rejections on timeout.
 
 ---
@@ -191,12 +191,12 @@ If `NEXT_PUBLIC_FEE_RESERVE` is set, `buildJupiterSwapTransaction()` includes th
 
 Every request to `apps/admin` is validated by `middleware.ts`:
 
-1. The client signs a JSON message `{ timestamp: <unix-ms> }` with its Ed25519 wallet private key.
+1. The client signs a JSON message `{ "timestamp": <unix-ms>, "domain": "<host>" }` with its Ed25519 wallet private key.
 2. The signature and public key are sent as HTTP headers.
 3. Middleware verifies:
    - The signature is valid (using `tweetnacl` + `bs58`).
    - The timestamp is within a 5-minute window (replay protection).
-   - The parsed domain matches `req.nextUrl.host` (cross-host replay protection).
+   - The `domain` in the signed payload matches `req.nextUrl.host` (cross-host replay protection).
    - The public key is in `ADMIN_WALLET_WHITELIST`.
 4. If `ADMIN_WALLET_WHITELIST` is empty in production, middleware **fails closed** (returns 401).
 

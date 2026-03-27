@@ -15,13 +15,13 @@ Step-by-step instructions for every dashboard and feature in AskStudio.
   - [Adjusting slippage](#5-adjusting-slippage)
   - [Executing a swap](#6-executing-a-swap)
   - [Viewing the transaction](#7-viewing-the-transaction)
-- [Admin Dashboard](#admin-dashboard-localhost3001admin)
+- [Admin Dashboard](#admin-dashboard-localhost3001)
   - [Authentication](#authentication)
   - [Fee Configuration](#fee-configuration)
   - [RPC Health Monitor](#rpc-health-monitor)
   - [Token Blacklist Management](#token-blacklist-management)
   - [Analytics](#analytics)
-- [Developer Tools](#developer-tools-localhost3002dev)
+- [Developer Tools](#developer-tools-localhost3002)
   - [RPC Switcher](#rpc-switcher)
   - [Route Debugger](#route-debugger)
   - [TX Builder](#tx-builder)
@@ -157,7 +157,7 @@ After the transaction is confirmed on-chain, a green banner appears with:
 
 ---
 
-## Admin Dashboard (`localhost:3001/admin`)
+## Admin Dashboard (`localhost:3001`)
 
 Protected management interface for platform operators.
 
@@ -165,7 +165,7 @@ Protected management interface for platform operators.
 
 ### Authentication
 
-All admin routes require a valid **ed25519 wallet signature**. The browser-side admin client automatically signs a JSON message `{ timestamp: <unix-ms> }` with the connected wallet and sends it as an HTTP header.
+All admin routes require a valid **ed25519 wallet signature**. The browser-side admin client automatically signs a JSON message `{ "timestamp": <unix-ms>, "domain": "<host>" }` with the connected wallet and sends it as HTTP headers.
 
 **Requirements:**
 - Your wallet address must be in the `ADMIN_WALLET_WHITELIST` environment variable.
@@ -182,7 +182,7 @@ If you see a **401 Unauthorized** response, check:
 
 ![Admin Dashboard](screenshots/admin-dashboard.svg)
 
-**Path:** `/admin`
+**Path:** `/`
 
 Shows the current platform fee settings:
 
@@ -192,20 +192,20 @@ Shows the current platform fee settings:
 | Fee Recipient | The SPL token account that receives fees |
 | Status | Enabled / Disabled |
 
-**To update fees**, send a signed `POST` request to `/admin/api/fee`:
+**To update fees**, send a signed `POST` request to `/api/fee`:
 
 ```bash
 # Example using curl (replace headers with real signature values)
-curl -X POST http://localhost:3001/admin/api/fee \
+curl -X POST http://localhost:3001/api/fee \
   -H "Content-Type: application/json" \
-  -H "x-wallet-pubkey: <your-pubkey-base58>" \
+  -H "x-wallet-address: <your-address-base58>" \
   -H "x-wallet-signature: <base58-signature>" \
-  -H "x-wallet-message: <base64-encoded-json-message>" \
+  -H 'x-wallet-message: {"timestamp":1720000000000,"domain":"localhost:3001"}' \
   -d '{ "bps": 30, "recipient": "<your-spl-account-base58>" }'
 ```
 
 **Valid range:** 0–200 BPS (0%–2%).  
-**To disable fees:** set `recipient` to an empty string or omit it.
+**To disable fees:** set `"enabled": false` in the request body, or leave `NEXT_PUBLIC_FEE_RESERVE` empty in `.env.local`.
 
 ---
 
@@ -213,7 +213,7 @@ curl -X POST http://localhost:3001/admin/api/fee \
 
 ![Admin RPC Health](screenshots/admin-rpc.svg)
 
-**Path:** `/admin/rpc`
+**Path:** `/rpc`
 
 Shows the health status and latency of all configured Solana RPC endpoints.
 
@@ -224,20 +224,9 @@ Shows the health status and latency of all configured Solana RPC endpoints.
 | Latency | Round-trip time in milliseconds; "Timeout" if unreachable |
 | Last checked | Timestamp of the most recent health check |
 
-**Automatic failover:** AskStudio automatically rotates between healthy endpoints every 30 seconds using round-robin selection. If an endpoint becomes unhealthy, it is skipped until it recovers.
+**Endpoint selection:** AskStudio uses round-robin rotation among healthy endpoints (advancing every 30 seconds). Health is re-evaluated when `checkAllHealth()` is called — for example, when this page loads. If an endpoint becomes unhealthy it is skipped until it recovers.
 
-**Pinning an endpoint (via API):**
-
-```bash
-curl -X POST http://localhost:3001/admin/api/rpc \
-  -H "Content-Type: application/json" \
-  -H "x-wallet-pubkey: <pubkey>" \
-  -H "x-wallet-signature: <sig>" \
-  -H "x-wallet-message: <msg>" \
-  -d '{ "endpoint": "https://api.mainnet-beta.solana.com", "pin": true }'
-```
-
-To remove the pin, send `"pin": false` or call the endpoint with no `pin` field.
+**Pinning an endpoint:** use `switchEndpoint()` in code, or call `GET /api/rpc` to check current health. There is no POST endpoint for pinning via the API — pinning is performed programmatically.
 
 ---
 
@@ -245,7 +234,7 @@ To remove the pin, send `"pin": false` or call the endpoint with no `pin` field.
 
 ![Admin Tokens](screenshots/admin-tokens.svg)
 
-**Path:** `/admin/tokens`
+**Path:** `/tokens`
 
 Lists all currently blacklisted token mint addresses and provides an interface to add or remove them.
 
@@ -256,28 +245,32 @@ Lists all currently blacklisted token mint addresses and provides an interface t
 **To blacklist a token:**
 
 ```bash
-curl -X POST http://localhost:3001/admin/api/tokens \
+curl -X POST http://localhost:3001/api/tokens \
   -H "Content-Type: application/json" \
-  -H "x-wallet-pubkey: <pubkey>" \
+  -H "x-wallet-address: <address-base58>" \
   -H "x-wallet-signature: <sig>" \
-  -H "x-wallet-message: <msg>" \
+  -H 'x-wallet-message: {"timestamp":1720000000000,"domain":"localhost:3001"}' \
   -d '{ "action": "blacklist", "mint": "<token-mint-base58>" }'
 ```
 
 **To remove a token from the blacklist:**
 
 ```bash
-curl -X POST http://localhost:3001/admin/api/tokens \
+curl -X POST http://localhost:3001/api/tokens \
+  -H "Content-Type: application/json" \
+  -H "x-wallet-address: <address-base58>" \
+  -H "x-wallet-signature: <sig>" \
+  -H 'x-wallet-message: {"timestamp":1720000000000,"domain":"localhost:3001"}' \
   -d '{ "action": "unblacklist", "mint": "<token-mint-base58>" }'
 ```
 
 **To list current blacklist:**
 
 ```bash
-curl http://localhost:3001/admin/api/tokens \
-  -H "x-wallet-pubkey: <pubkey>" \
+curl http://localhost:3001/api/tokens \
+  -H "x-wallet-address: <address-base58>" \
   -H "x-wallet-signature: <sig>" \
-  -H "x-wallet-message: <msg>"
+  -H 'x-wallet-message: {"timestamp":1720000000000,"domain":"localhost:3001"}'
 # Response: { "blacklist": ["<mint1>", "<mint2>", …] }
 ```
 
@@ -287,7 +280,7 @@ curl http://localhost:3001/admin/api/tokens \
 
 ![Admin Analytics](screenshots/admin-analytics.svg)
 
-**Path:** `/admin/analytics`
+**Path:** `/analytics`
 
 Displays aggregated swap statistics and a table of recent individual swaps.
 
@@ -312,24 +305,17 @@ Displays aggregated swap statistics and a table of recent individual swaps.
 **To fetch analytics via API:**
 
 ```bash
-curl http://localhost:3001/admin/api/analytics \
-  -H "x-wallet-pubkey: <pubkey>" \
+curl http://localhost:3001/api/analytics \
+  -H "x-wallet-address: <address-base58>" \
   -H "x-wallet-signature: <sig>" \
-  -H "x-wallet-message: <msg>"
+  -H 'x-wallet-message: {"timestamp":1720000000000,"domain":"localhost:3001"}'
 ```
 
-**To clear analytics data:**
-
-```bash
-curl -X DELETE http://localhost:3001/admin/api/analytics \
-  -H "x-wallet-pubkey: <pubkey>" \
-  -H "x-wallet-signature: <sig>" \
-  -H "x-wallet-message: <msg>"
-```
+> **Note:** Analytics are stored in-memory and reset when the server restarts. There is no delete endpoint — to clear analytics, restart the admin server.
 
 ---
 
-## Developer Tools (`localhost:3002/dev`)
+## Developer Tools (`localhost:3002`)
 
 An internal debugging interface for developers. **Not for production use.**
 
@@ -339,7 +325,7 @@ An internal debugging interface for developers. **Not for production use.**
 
 ### RPC Switcher
 
-**Path:** `/dev/rpc`
+**Path:** `/rpc`
 
 Shows the real-time health of all RPC endpoints — identical to the admin view but without authentication.
 
@@ -347,14 +333,14 @@ Shows the real-time health of all RPC endpoints — identical to the admin view 
 
 ### Route Debugger
 
-**Path:** `/dev/routes`
+**Path:** `/routes`
 
 Inspect raw Jupiter route data by querying the quote API directly.
 
 **Example:**
 
 ```bash
-curl "http://localhost:3002/dev/api/quote?\
+curl "http://localhost:3002/api/quote?\
 inputMint=So11111111111111111111111111111111111111112\
 &outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v\
 &amount=1000000000\
@@ -376,70 +362,39 @@ inputMint=So11111111111111111111111111111111111111112\
 
 ### TX Builder
 
-**Path:** `/dev/tx`
+**Path:** `/tx`
 
 Build and preview a raw Solana transaction without signing it. Useful for verifying instruction layout.
 
-**Example request:**
-
-```bash
-curl -X POST http://localhost:3002/dev/api/tx \
-  -H "Content-Type: application/json" \
-  -d '{
-    "inputMint": "So11111111111111111111111111111111111111112",
-    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-    "amount": "1000000000",
-    "slippageBps": 50,
-    "userPublicKey": "<your-wallet-pubkey>"
-  }'
-```
-
-Returns the base64-encoded transaction for inspection.
+> The TX Builder page uses the dev app's `/api/quote` endpoint to fetch a quote and displays the resulting transaction structure.
 
 ---
 
 ### Swap Simulator
 
-**Path:** `/dev/simulator`
+**Path:** `/simulator`
 
 Simulates a swap through the full AskStudio pipeline without broadcasting to the network.
 
-```bash
-curl -X POST http://localhost:3002/dev/api/simulate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "inputMint":  "So11111111111111111111111111111111111111112",
-    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-    "amount": "1000000000",
-    "slippageBps": 50
-  }'
-```
-
-Returns the best route, estimated output, fee amounts, and whether the transaction would succeed.
+> The Swap Simulator page uses the dev app's `/api/quote` endpoint to fetch and display route information without signing or submitting a transaction.
 
 ---
 
 ### Token Inspector
 
-**Path:** `/dev/tokens`
+**Path:** `/tokens`
 
 Fetch the full aggregated token list:
 
 ```bash
-curl http://localhost:3002/dev/api/tokens
+curl http://localhost:3002/api/tokens
 # Response: { "tokens": [...], "lastUpdated": 1720000000000, "sources": ["jupiter","raydium","orca"] }
 ```
 
 Filter by symbol:
 
 ```bash
-curl "http://localhost:3002/dev/api/tokens?q=SOL"
-```
-
-Inspect a specific token by mint:
-
-```bash
-curl "http://localhost:3002/dev/api/tokens/So11111111111111111111111111111111111111112"
+curl "http://localhost:3002/api/tokens?q=SOL"
 ```
 
 ---
@@ -457,23 +412,21 @@ curl "http://localhost:3002/dev/api/tokens/So11111111111111111111111111111111111
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/admin/api/health` | Overall platform health summary |
-| `GET` | `/admin/api/analytics` | Swap analytics summary + recent entries |
-| `DELETE` | `/admin/api/analytics` | Clear analytics data |
-| `POST` | `/admin/api/fee` | Update fee BPS and recipient |
-| `GET` | `/admin/api/tokens` | Current token blacklist |
-| `POST` | `/admin/api/tokens` | Blacklist or unblacklist a mint |
-| `GET` | `/admin/api/rpc` | RPC endpoint health |
-| `POST` | `/admin/api/rpc` | Pin or unpin an endpoint |
+| `GET` | `/api/analytics` | Swap analytics summary + recent entries |
+| `GET` | `/api/fee` | Current fee BPS and recipient |
+| `POST` | `/api/fee` | Update fee BPS and recipient |
+| `GET` | `/api/tokens` | Current token blacklist |
+| `POST` | `/api/tokens` | Blacklist or unblacklist a mint |
+| `GET` | `/api/rpc` | RPC endpoint health |
 
 ### Signature header format
 
 Every admin API call must include the following HTTP headers:
 
 ```
-x-wallet-pubkey:   <base58-encoded ed25519 public key>
-x-wallet-signature: <base58-encoded signature of x-wallet-message>
-x-wallet-message:   <base64-encoded JSON: { "timestamp": <unix-ms>, "domain": "<host>" }>
+x-wallet-address:   <base58-encoded wallet address>
+x-wallet-signature: <base58-encoded ed25519 signature over x-wallet-message>
+x-wallet-message:   <JSON string: { "timestamp": <unix-ms>, "domain": "<host>" }>
 ```
 
 The timestamp must be within 5 minutes of the server's current time.
