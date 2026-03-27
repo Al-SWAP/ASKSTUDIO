@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "outDir": "dist",
+    "noEmit": false,
+    "paths": {
+      "@askstudio/dex": ["../dex/src/index.ts"],
+      "@askstudio/tokens": ["../tokens/src/index.ts"],
+      "@askstudio/config": ["../config/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

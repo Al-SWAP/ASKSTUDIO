@@ -1,0 +1,19 @@
+[package]
+name = "fee-collector"
+version = "0.1.0"
+description = "AskStudio fee collection and treasury forwarding program"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "fee_collector"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.30.1"

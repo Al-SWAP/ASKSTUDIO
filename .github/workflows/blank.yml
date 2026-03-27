@@ -1,36 +1,55 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches: [main, develop]
   pull_request:
-    branches: [ "main" ]
+    branches: [main, develop]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  build-and-typecheck:
+    name: Build & Type Check
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.1.0
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check all apps and packages
+        run: pnpm turbo run type-check --filter=!@askstudio/mobile --filter=!@askstudio/desktop
+
+      - name: Build all apps and packages
+        run: pnpm turbo run build --filter=!@askstudio/mobile --filter=!@askstudio/desktop
+        env:
+          NEXT_PUBLIC_SOLANA_RPC: ${{ vars.NEXT_PUBLIC_SOLANA_RPC || 'https://api.mainnet-beta.solana.com' }}
+          NEXT_PUBLIC_SOLANA_RPC_FALLBACK: ${{ vars.NEXT_PUBLIC_SOLANA_RPC_FALLBACK || 'https://rpc.ankr.com/solana' }}
+          NEXT_PUBLIC_SOLANA_RPC_BACKUP: ${{ vars.NEXT_PUBLIC_SOLANA_RPC_BACKUP || 'https://solana.public-rpc.com' }}
+          NEXT_PUBLIC_JUPITER_API: ${{ vars.NEXT_PUBLIC_JUPITER_API || 'https://quote-api.jup.ag/v6' }}
+          NEXT_PUBLIC_JUPITER_SWAP_API: ${{ vars.NEXT_PUBLIC_JUPITER_SWAP_API || 'https://quote-api.jup.ag/v6/swap' }}
+          NEXT_PUBLIC_TOKEN_LIST: ${{ vars.NEXT_PUBLIC_TOKEN_LIST || 'https://token.jup.ag/all' }}
+          NEXT_PUBLIC_RAYDIUM_API: ${{ vars.NEXT_PUBLIC_RAYDIUM_API || 'https://api.raydium.io/v2/sdk/liquidity/mainnet.json' }}
+          NEXT_PUBLIC_ORCA_API: ${{ vars.NEXT_PUBLIC_ORCA_API || 'https://api.orca.so/allPools' }}
+          NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${{ vars.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'public_default_project_id' }}
+          NEXT_PUBLIC_FEE_RESERVE: ${{ vars.NEXT_PUBLIC_FEE_RESERVE || 'monads.skr' }}
+          NEXT_PUBLIC_DEFAULT_FEE_BPS: ${{ vars.NEXT_PUBLIC_DEFAULT_FEE_BPS || '20' }}
