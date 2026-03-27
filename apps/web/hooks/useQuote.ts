@@ -38,8 +38,13 @@ export function useQuote() {
 
     try {
       const decimals = inputToken.decimals ?? 9;
-      const amountLamports = Math.floor(parseFloat(inputAmount) * Math.pow(10, decimals));
-      if (amountLamports <= 0) {
+      // Use BigInt-based fixed-point arithmetic to avoid float precision loss for
+      // u64-scale lamport amounts (parseFloat * 10^decimals can exceed MAX_SAFE_INTEGER).
+      const [whole, frac = ""] = inputAmount.split(".");
+      const fracTrimmed = frac.slice(0, decimals).padEnd(decimals, "0");
+      const amountLamportsBig =
+        BigInt(whole || "0") * (10n ** BigInt(decimals)) + BigInt(fracTrimmed);
+      if (amountLamportsBig <= 0n) {
         setRoute(null);
         setLatencyMs(undefined);
         return;
@@ -48,7 +53,7 @@ export function useQuote() {
       const params = new URLSearchParams({
         inputMint: inputToken.address,
         outputMint: outputToken.address,
-        amount: amountLamports.toString(),
+        amount: amountLamportsBig.toString(),
         slippageBps: slippageBps.toString(),
       });
 

@@ -41,12 +41,12 @@ export function setFeeConfig(config: Partial<FeeConfig>): FeeConfig {
   return getFeeConfig();
 }
 
-export function calculateFee(inputAmountLamports: number, bps: number): number {
-  if (bps <= 0) return 0;
-  return Math.floor((inputAmountLamports * bps) / 10_000);
+export function calculateFee(inputAmountLamports: bigint, bps: number): bigint {
+  if (bps <= 0) return 0n;
+  return (inputAmountLamports * BigInt(bps)) / 10_000n;
 }
 
-export function calculateNetAmount(inputAmountLamports: number, bps: number): number {
+export function calculateNetAmount(inputAmountLamports: bigint, bps: number): bigint {
   return inputAmountLamports - calculateFee(inputAmountLamports, bps);
 }
 

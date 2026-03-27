@@ -1,7 +1,8 @@
 export interface QuoteParams {
   inputMint: string;
   outputMint: string;
-  amount: number;
+  /** u64 integer as a decimal string to preserve precision beyond Number.MAX_SAFE_INTEGER. */
+  amount: string;
   slippageBps?: number;
   swapMode?: "ExactIn" | "ExactOut";
   onlyDirectRoutes?: boolean;

@@ -47,8 +47,15 @@ export function SwapCard() {
 
   const estimatedOutput = (() => {
     if (!route || !outputToken) return "";
-    const raw = parseFloat(route.outAmount) / Math.pow(10, outputToken.decimals ?? 9);
-    return raw.toFixed(6);
+    // Use BigInt arithmetic to avoid float precision loss on u64-scale outAmount values.
+    const decimals = outputToken.decimals ?? 9;
+    const outAmountBig = BigInt(route.outAmount);
+    const divisor = 10n ** BigInt(decimals);
+    // Scale by 1_000_000 to derive 6 significant fractional digits in integer space.
+    const scaledBy6 = (outAmountBig * 1_000_000n) / divisor;
+    const intPart = scaledBy6 / 1_000_000n;
+    const fracPart = scaledBy6 % 1_000_000n;
+    return `${intPart}.${fracPart.toString().padStart(6, "0")}`;
   })();
 
   const canSwap = connected && !!route && !isSwapping && !isLoadingQuote;

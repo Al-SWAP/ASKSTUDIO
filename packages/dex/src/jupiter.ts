@@ -32,7 +32,7 @@ export async function getJupiterQuote(params: QuoteParams, signal?: AbortSignal)
   const searchParams = new URLSearchParams({
     inputMint: params.inputMint,
     outputMint: params.outputMint,
-    amount: params.amount.toString(),
+    amount: params.amount,
     slippageBps: (params.slippageBps ?? 50).toString(),
     swapMode: params.swapMode ?? "ExactIn",
     onlyDirectRoutes: (params.onlyDirectRoutes ?? false).toString(),

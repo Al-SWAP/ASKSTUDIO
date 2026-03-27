@@ -21,6 +21,7 @@ const CLOCK_SKEW_MS = 30_000; // 30 seconds
  *   - it is not valid JSON
  *   - it does not contain a numeric `timestamp` field
  *   - the timestamp is older than MESSAGE_TTL_MS (default 5 min)
+ *   - `domain` does not match the request host (cross-host replay protection)
  *   - the ed25519 signature does not verify
  */
 function verifyWalletSignature(req: NextRequest, wallet: string): boolean {
@@ -41,8 +42,8 @@ function verifyWalletSignature(req: NextRequest, wallet: string): boolean {
     return false;
   }
 
-  // Validate message freshness to prevent replay of captured signatures.
-  // The client must embed a `timestamp` (unix ms) in the signed JSON payload.
+  // Validate message freshness and origin to prevent replay of captured signatures.
+  // The client must embed a `timestamp` (unix ms) and `domain` in the signed JSON payload.
   try {
     const parsed = JSON.parse(message) as Record<string, unknown>;
     if (typeof parsed.timestamp !== "number") return false;
@@ -51,6 +52,8 @@ function verifyWalletSignature(req: NextRequest, wallet: string): boolean {
     if (now - parsed.timestamp > MESSAGE_TTL_MS) return false;
     // Reject messages signed with a future timestamp (bypass via future-dating).
     if (parsed.timestamp > now + CLOCK_SKEW_MS) return false;
+    // Reject messages signed for a different host (cross-host replay protection).
+    if (typeof parsed.domain !== "string" || parsed.domain !== req.nextUrl.host) return false;
   } catch {
     // Message is not valid JSON — reject; plain-string messages cannot prove freshness.
     return false;
@@ -61,7 +64,16 @@ function verifyWalletSignature(req: NextRequest, wallet: string): boolean {
 
 export function middleware(req: NextRequest) {
   const whitelist = env.ADMIN_WALLET_WHITELIST;
-  if (whitelist.length === 0) return NextResponse.next();
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (whitelist.length === 0) {
+    // Fail closed in production if the admin whitelist is not configured.
+    if (isProduction) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // In non-production environments, allow bypass for local development.
+    return NextResponse.next();
+  }
 
   const wallet = req.headers.get("x-wallet-address");
   if (!wallet || !whitelist.includes(wallet)) {

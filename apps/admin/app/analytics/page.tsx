@@ -1,5 +1,5 @@
-import type { AnalyticsSummary } from "@askstudio/dex";
-import type { AnalyticsEntry } from "@askstudio/dex";
+import { getAnalyticsSummary, getRecentEntries } from "@askstudio/dex";
+import type { AnalyticsSummary, AnalyticsEntry } from "@askstudio/dex";
 
 // Force dynamic rendering — analytics must not be stale from a build-time snapshot.
 export const dynamic = "force-dynamic";
@@ -16,25 +16,16 @@ const EMPTY_SUMMARY: AnalyticsSummary = {
 };
 
 export default async function AnalyticsPage() {
-  // Fetch from the admin app's own /api/analytics endpoint so the data path
-  // is consistent and can later be backed by a shared store without page changes.
-  const baseUrl =
-    process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : `http://localhost:${process.env.PORT ?? 3001}`;
-
+  // Call the analytics functions directly so we stay in the same Node.js process
+  // and don't need to forward admin auth headers via a server-to-server HTTP request.
   let summary: AnalyticsSummary = EMPTY_SUMMARY;
   let recent: AnalyticsEntry[] = [];
 
   try {
-    const res = await fetch(`${baseUrl}/api/analytics`, { cache: "no-store" });
-    if (res.ok) {
-      const data = await res.json();
-      summary = data.summary ?? EMPTY_SUMMARY;
-      recent = data.recent ?? [];
-    }
+    summary = getAnalyticsSummary();
+    recent = getRecentEntries(20);
   } catch {
-    // If the API is unreachable, render with empty data.
+    // Render with empty data if analytics are unavailable.
   }
 
   return (
