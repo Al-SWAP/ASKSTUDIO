@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#020205"/>
+      <stop offset="100%" stop-color="#050510"/>
+    </linearGradient>
+    <radialGradient id="greenGlow" cx="20%" cy="30%" r="40%">
+      <stop offset="0%" stop-color="rgba(0,180,80,0.06)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="800" fill="url(#bg)"/>
+  <rect width="1280" height="800" fill="url(#greenGlow)"/>
+
+  <!-- Browser chrome -->
+  <rect x="0" y="0" width="1280" height="30" fill="rgba(0,0,0,0.7)"/>
+  <circle cx="18" cy="15" r="6" fill="#ff5f57"/>
+  <circle cx="38" cy="15" r="6" fill="#febc2e"/>
+  <circle cx="58" cy="15" r="6" fill="#28c840"/>
+  <rect x="200" y="7" width="880" height="16" rx="8" fill="rgba(255,255,255,0.06)"/>
+  <text x="640" y="19" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.35)" text-anchor="middle">localhost:3002/dev</text>
+
+  <!-- Sidebar navigation -->
+  <rect x="0" y="30" width="220" height="770" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="20" y="72" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="700" fill="#34d399">⚡ AskStudio Dev</text>
+  <line x1="0" y1="86" x2="220" y2="86" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <text x="20" y="114" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.3)" letter-spacing="1">TOOLS</text>
+  <!-- Active: home -->
+  <rect x="0" y="122" width="220" height="36" fill="rgba(52,211,153,0.08)"/>
+  <rect x="0" y="122" width="3" height="36" fill="#34d399"/>
+  <text x="20" y="145" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#34d399">🏠  Home</text>
+
+  <rect x="0" y="158" width="220" height="36" fill="transparent"/>
+  <text x="20" y="181" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.55)">🔌  RPC Switcher</text>
+
+  <rect x="0" y="194" width="220" height="36" fill="transparent"/>
+  <text x="20" y="217" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.55)">🔍  Route Debugger</text>
+
+  <rect x="0" y="230" width="220" height="36" fill="transparent"/>
+  <text x="20" y="253" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.55)">🔨  TX Builder</text>
+
+  <rect x="0" y="266" width="220" height="36" fill="transparent"/>
+  <text x="20" y="289" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.55)">🎮  Swap Simulator</text>
+
+  <rect x="0" y="302" width="220" height="36" fill="transparent"/>
+  <text x="20" y="325" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.55)">🪙  Token Inspector</text>
+
+  <!-- Main content area -->
+  <!-- Header -->
+  <text x="256" y="90" font-family="Inter,system-ui,sans-serif" font-size="24" font-weight="700" fill="#34d399">Developer Tools</text>
+  <text x="256" y="114" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.4)">Local debugging &amp; inspection utilities for AskStudio</text>
+
+  <!-- Grid of tool cards -->
+  <!-- Row 1 -->
+  <!-- RPC Switcher -->
+  <rect x="256" y="136" width="244" height="112" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="1"/>
+  <rect x="256" y="136" width="244" height="4" rx="2" fill="rgba(52,211,153,0.5)"/>
+  <text x="274" y="172" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#34d399">RPC Switcher</text>
+  <text x="274" y="194" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.45)">Live endpoint management</text>
+  <text x="274" y="212" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.25)">Check health · switch primary</text>
+  <text x="274" y="236" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(52,211,153,0.6)">→ /dev/rpc</text>
+
+  <!-- Route Debugger -->
+  <rect x="516" y="136" width="244" height="112" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="1"/>
+  <rect x="516" y="136" width="244" height="4" rx="2" fill="rgba(52,211,153,0.5)"/>
+  <text x="534" y="172" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#34d399">Route Debugger</text>
+  <text x="534" y="194" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.45)">Inspect raw Jupiter routes</text>
+  <text x="534" y="212" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.25)">Live quote · route scoring</text>
+  <text x="534" y="236" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(52,211,153,0.6)">→ /dev/routes</text>
+
+  <!-- TX Builder -->
+  <rect x="776" y="136" width="244" height="112" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="1"/>
+  <rect x="776" y="136" width="244" height="4" rx="2" fill="rgba(52,211,153,0.5)"/>
+  <text x="794" y="172" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#34d399">TX Builder</text>
+  <text x="794" y="194" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.45)">Build raw transactions</text>
+  <text x="794" y="212" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.25)">Preview · inspect · export</text>
+  <text x="794" y="236" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(52,211,153,0.6)">→ /dev/tx</text>
+
+  <!-- Row 2 -->
+  <!-- Swap Simulator -->
+  <rect x="256" y="264" width="244" height="112" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="1"/>
+  <rect x="256" y="264" width="244" height="4" rx="2" fill="rgba(52,211,153,0.5)"/>
+  <text x="274" y="300" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#34d399">Swap Simulator</text>
+  <text x="274" y="322" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.45)">Simulate without signing</text>
+  <text x="274" y="340" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.25)">Test flows · dry-run swap</text>
+  <text x="274" y="364" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(52,211,153,0.6)">→ /dev/simulator</text>
+
+  <!-- Token Inspector -->
+  <rect x="516" y="264" width="244" height="112" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="1"/>
+  <rect x="516" y="264" width="244" height="4" rx="2" fill="rgba(52,211,153,0.5)"/>
+  <text x="534" y="300" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="#34d399">Token Inspector</text>
+  <text x="534" y="322" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.45)">View token metadata</text>
+  <text x="534" y="340" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.25)">Sources · decimals · mint</text>
+  <text x="534" y="364" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(52,211,153,0.6)">→ /dev/tokens</text>
+
+  <!-- Info tile (spans wide) -->
+  <rect x="256" y="392" width="1000" height="76" rx="14" fill="rgba(52,211,153,0.05)" stroke="rgba(52,211,153,0.15)" stroke-width="1"/>
+  <text x="276" y="422" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#34d399">Quick API reference</text>
+  <text x="276" y="446" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.45)">
+    GET /dev/api/quote?inputMint=…&amp;outputMint=…&amp;amount=…&amp;slippageBps=50   ·   GET /dev/api/tokens   ·   GET /dev/api/rpc
+  </text>
+
+  <!-- Terminal window -->
+  <rect x="256" y="484" width="1000" height="270" rx="14" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <!-- Terminal title bar -->
+  <rect x="256" y="484" width="1000" height="34" rx="14" fill="rgba(255,255,255,0.04)"/>
+  <rect x="256" y="498" width="1000" height="20" fill="rgba(255,255,255,0.04)"/>
+  <circle cx="276" cy="501" r="5" fill="#ff5f57"/>
+  <circle cx="294" cy="501" r="5" fill="#febc2e"/>
+  <circle cx="312" cy="501" r="5" fill="#28c840"/>
+  <text x="620" y="505" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.35)" text-anchor="middle">AskStudio Dev — Terminal</text>
+  <!-- Terminal content -->
+  <text x="276" y="536" font-family="monospace,monospace" font-size="12" fill="#34d399">$ curl "localhost:3002/dev/api/quote?inputMint=So111…&amp;outputMint=EPjF…&amp;amount=1500000000"</text>
+  <text x="276" y="558" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.5)">{</text>
+  <text x="276" y="574" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.5)">  "inputMint": "So11111111111111111111111111111111111111112",</text>
+  <text x="276" y="590" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.5)">  "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",</text>
+  <text x="276" y="606" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.5)">  "inAmount": "1500000000",  "outAmount": "183241200",</text>
+  <text x="276" y="622" font-family="monospace,monospace" font-size="11" fill="#4ade80">  "priceImpactPct": "0.031",  "routePlan": [ … 2 hops … ],</text>
+  <text x="276" y="638" font-family="monospace,monospace" font-size="11" fill="#4ade80">  "score": 0.892,  "latencyMs": 142</text>
+  <text x="276" y="654" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.5)">}</text>
+  <text x="276" y="676" font-family="monospace,monospace" font-size="12" fill="#34d399">$ <tspan fill="rgba(52,211,153,0.5)">█</tspan></text>
+</svg>

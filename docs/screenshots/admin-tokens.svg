@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#050508"/>
+      <stop offset="100%" stop-color="#0a0a14"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="800" fill="url(#bg)"/>
+
+  <!-- Top nav -->
+  <rect x="0" y="30" width="1280" height="52" fill="#111827" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="24" y="63" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="700" fill="#a78bfa">AskStudio Admin</text>
+  <text x="180" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">Dashboard</text>
+  <text x="268" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">RPC Health</text>
+  <text x="360" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="white">Tokens</text>
+  <rect x="355" y="78" width="54" height="2" rx="1" fill="#a78bfa"/>
+  <text x="424" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">Analytics</text>
+
+  <!-- Page title -->
+  <text x="24" y="122" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="700" fill="white">Token Management</text>
+
+  <!-- Main card -->
+  <rect x="24" y="140" width="780" height="580" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+  <!-- Section: Blacklisted Tokens -->
+  <text x="44" y="172" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="600" fill="white">
+    Blacklisted Tokens <tspan fill="rgba(255,255,255,0.3)" font-size="13">(2)</tspan>
+  </text>
+
+  <!-- Token 1 -->
+  <rect x="44" y="186" width="740" height="52" rx="10" fill="rgba(239,68,68,0.05)" stroke="rgba(239,68,68,0.15)" stroke-width="1"/>
+  <text x="64" y="210" font-family="monospace,monospace" font-size="12" fill="rgba(255,255,255,0.6)">9xeqJLqkVFhVqFqBWPEJqxF6XSbvW6mzW2iK9nRwRmT5</text>
+  <rect x="700" y="196" width="66" height="24" rx="8" fill="rgba(239,68,68,0.15)" stroke="rgba(239,68,68,0.3)" stroke-width="1"/>
+  <text x="733" y="212" font-family="Inter,system-ui,sans-serif" font-size="11" fill="#f87171" text-anchor="middle">Remove</text>
+  <text x="64" y="228" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.3)">Blacklisted · will not appear in token list</text>
+
+  <!-- Token 2 -->
+  <rect x="44" y="252" width="740" height="52" rx="10" fill="rgba(239,68,68,0.05)" stroke="rgba(239,68,68,0.15)" stroke-width="1"/>
+  <text x="64" y="276" font-family="monospace,monospace" font-size="12" fill="rgba(255,255,255,0.6)">FsJ3A3u2vn5cTkxxnCZGJBD4MFVdRMRjnQmFkS9XqB7Z</text>
+  <rect x="700" y="262" width="66" height="24" rx="8" fill="rgba(239,68,68,0.15)" stroke="rgba(239,68,68,0.3)" stroke-width="1"/>
+  <text x="733" y="278" font-family="Inter,system-ui,sans-serif" font-size="11" fill="#f87171" text-anchor="middle">Remove</text>
+  <text x="64" y="294" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.3)">Blacklisted · will not appear in token list</text>
+
+  <text x="44" y="336" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.25)">
+    Use POST /api/tokens to blacklist/unblacklist tokens.
+  </text>
+
+  <!-- Divider -->
+  <line x1="44" y1="356" x2="744" y2="356" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+
+  <!-- Add to blacklist form -->
+  <text x="44" y="384" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="white">Blacklist a Token</text>
+  <text x="44" y="404" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Enter the base58 mint address of the token to block.</text>
+  <rect x="44" y="416" width="524" height="40" rx="10" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="60" y="440" font-family="monospace,monospace" font-size="12" fill="rgba(255,255,255,0.25)">e.g. So11111111111111111111111111111111111111112</text>
+  <rect x="580" y="416" width="140" height="40" rx="10" fill="rgba(239,68,68,0.15)" stroke="rgba(239,68,68,0.3)" stroke-width="1"/>
+  <text x="650" y="440" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="#f87171" text-anchor="middle">Blacklist</text>
+
+  <!-- Right column: API reference -->
+  <rect x="828" y="140" width="428" height="520" rx="14" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="848" y="172" font-family="Inter,system-ui,sans-serif" font-size="14" font-weight="600" fill="white">Token API Reference</text>
+
+  <text x="848" y="200" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="rgba(255,255,255,0.6)">POST /admin/api/tokens</text>
+
+  <!-- Blacklist example -->
+  <rect x="848" y="210" width="388" height="100" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="864" y="230" font-family="monospace,monospace" font-size="10" fill="rgba(255,255,255,0.5)">// Blacklist a token</text>
+  <text x="864" y="246" font-family="monospace,monospace" font-size="10" fill="#818cf8">{</text>
+  <text x="876" y="262" font-family="monospace,monospace" font-size="10" fill="#4ade80">  "action"</text>
+  <text x="928" y="262" font-family="monospace,monospace" font-size="10" fill="white">: </text>
+  <text x="940" y="262" font-family="monospace,monospace" font-size="10" fill="#fbbf24">"blacklist"</text>
+  <text x="876" y="278" font-family="monospace,monospace" font-size="10" fill="#4ade80">  "mint"</text>
+  <text x="916" y="278" font-family="monospace,monospace" font-size="10" fill="white">:   </text>
+  <text x="940" y="278" font-family="monospace,monospace" font-size="10" fill="#fbbf24">"9xeqJLqk…"</text>
+  <text x="864" y="294" font-family="monospace,monospace" font-size="10" fill="#818cf8">}</text>
+
+  <!-- Unblacklist example -->
+  <rect x="848" y="322" width="388" height="100" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="864" y="342" font-family="monospace,monospace" font-size="10" fill="rgba(255,255,255,0.5)">// Unblacklist a token</text>
+  <text x="864" y="358" font-family="monospace,monospace" font-size="10" fill="#818cf8">{</text>
+  <text x="876" y="374" font-family="monospace,monospace" font-size="10" fill="#4ade80">  "action"</text>
+  <text x="928" y="374" font-family="monospace,monospace" font-size="10" fill="white">: </text>
+  <text x="940" y="374" font-family="monospace,monospace" font-size="10" fill="#fbbf24">"unblacklist"</text>
+  <text x="876" y="390" font-family="monospace,monospace" font-size="10" fill="#4ade80">  "mint"</text>
+  <text x="916" y="390" font-family="monospace,monospace" font-size="10" fill="white">:   </text>
+  <text x="940" y="390" font-family="monospace,monospace" font-size="10" fill="#fbbf24">"9xeqJLqk…"</text>
+  <text x="864" y="406" font-family="monospace,monospace" font-size="10" fill="#818cf8">}</text>
+
+  <!-- GET tokens -->
+  <text x="848" y="442" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="rgba(255,255,255,0.6)">GET /admin/api/tokens</text>
+  <rect x="848" y="452" width="388" height="52" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="864" y="470" font-family="monospace,monospace" font-size="10" fill="rgba(255,255,255,0.5)">// Response</text>
+  <text x="864" y="488" font-family="monospace,monospace" font-size="10" fill="#818cf8">&#123; "blacklist": ["9xeqJLqk…", "FsJ3A3u2…"] &#125;</text>
+
+  <text x="848" y="528" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.25)">All requests require a valid ed25519</text>
+  <text x="848" y="544" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.25)">wallet signature header.</text>
+
+  <!-- Browser chrome -->
+  <rect x="0" y="0" width="1280" height="30" fill="rgba(0,0,0,0.6)"/>
+  <circle cx="18" cy="15" r="6" fill="#ff5f57"/>
+  <circle cx="38" cy="15" r="6" fill="#febc2e"/>
+  <circle cx="58" cy="15" r="6" fill="#28c840"/>
+  <rect x="200" y="7" width="880" height="16" rx="8" fill="rgba(255,255,255,0.08)"/>
+  <text x="640" y="19" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)" text-anchor="middle">localhost:3001/admin/tokens</text>
+</svg>
