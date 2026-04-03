@@ -41,7 +41,7 @@ export default function TokensAdminPage() {
   const filtered = tokens
     .filter((t) => {
       const q = search.toLowerCase();
-      return !q || t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || t.address.includes(q);
+      return !q || t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || t.address.toLowerCase().includes(q);
     })
     .slice(0, 100);
 

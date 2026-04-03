@@ -1,6 +1,7 @@
 "use client";
 
 import { useSwapStore } from "@/store/swapStore";
+import { formatBaseUnits } from "@/lib/formatUnits";
 
 export function RouteInfo() {
   const { route, isLoadingQuote, outputToken } = useSwapStore();
@@ -21,7 +22,8 @@ export function RouteInfo() {
     priceImpact < 1 ? "text-green-400" : priceImpact < 3 ? "text-yellow-400" : "text-red-400";
 
   const outDecimals = outputToken?.decimals ?? 6;
-  const minReceived = parseInt(route.otherAmountThreshold) / Math.pow(10, outDecimals);
+  // Use BigInt-based formatting to avoid precision loss on large base-unit values.
+  const minReceived = formatBaseUnits(route.otherAmountThreshold, outDecimals);
 
   return (
     <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-2 text-xs">
@@ -47,7 +49,7 @@ export function RouteInfo() {
       <div className="flex items-center justify-between">
         <span className="text-white/40">Min Received</span>
         <span className="text-white/70 font-medium">
-          {minReceived.toFixed(outDecimals > 6 ? 6 : outDecimals)} {outputToken?.symbol ?? ""}
+          {minReceived} {outputToken?.symbol ?? ""}
         </span>
       </div>
     </div>

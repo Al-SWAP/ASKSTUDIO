@@ -16,7 +16,7 @@ function mergeToken(base: Token, incoming: Token): Token {
   }
   const sourcesSet = new Set([...merged.sources, ...incoming.sources]);
   merged.sources = Array.from(sourcesSet) as TokenSource[];
-  merged.rank = (merged.rank ?? 0) + (incoming.rank ?? 0);
+  // rank is recomputed for all tokens via rankToken() in aggregateTokens; no need to accumulate here.
   return merged;
 }
 

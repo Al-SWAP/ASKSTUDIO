@@ -45,7 +45,21 @@ export default function TxBuilderPage() {
       );
 
       const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
-      const base64 = serialized.toString("base64");
+      // Browser-safe base64 encoding without relying on Node's Buffer.toString("base64")
+      let base64: string;
+      if (typeof btoa !== "undefined") {
+      let binary = "";
+      const chars: string[] = [];
+      const bytes = serialized as Uint8Array;
+      for (let i = 0; i < bytes.length; i++) {
+        chars.push(String.fromCharCode(bytes[i]));
+      }
+      binary = chars.join("");
+      base64 = btoa(binary);
+      } else {
+        // Fallback for environments where btoa is unavailable
+        base64 = Buffer.from(serialized as Uint8Array).toString("base64");
+      }
 
       setResult(JSON.stringify({
         transaction: base64,

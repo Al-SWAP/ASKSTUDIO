@@ -10,7 +10,9 @@ const WEIGHTS = {
 export function scoreRoute(route: SwapRoute, latencyMs?: number): RouteScore {
   // Use BigInt for the outAmount comparison to avoid precision loss on large base-unit values.
   const outAmountPositive = BigInt(route.outAmount || "0") > 0n;
-  const priceImpact = parseFloat(route.priceImpactPct);
+  // Guard against NaN/Infinity from missing or malformed priceImpactPct.
+  const priceImpactRaw = parseFloat(route.priceImpactPct);
+  const priceImpact = isFinite(priceImpactRaw) ? priceImpactRaw : 0;
   const slippageBps = route.slippageBps;
 
   const outputScore = outAmountPositive ? Math.min(100, (1 / (1 + priceImpact)) * 100) : 0;

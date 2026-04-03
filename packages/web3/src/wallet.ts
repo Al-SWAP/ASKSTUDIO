@@ -35,10 +35,13 @@ export async function getTokenBalance(
     });
     if (tokenAccounts.value.length === 0) return 0;
     // Sum across all token accounts for the same mint to avoid under-reporting.
+    // Use uiAmountString (a decimal string from the RPC) rather than uiAmount (a float)
+    // to reduce rounding errors; parseFloat of a decimal string is still approximate for
+    // display-only purposes, but avoids the extra float multiplication inherent in uiAmount.
     return tokenAccounts.value.reduce((sum, account) => {
-      const uiAmount: number | null =
-        account.account.data.parsed.info.tokenAmount.uiAmount;
-      return sum + (uiAmount ?? 0);
+      const uiAmountStr: string | null =
+        account.account.data.parsed.info.tokenAmount.uiAmountString;
+      return sum + parseFloat(uiAmountStr ?? "0");
     }, 0);
   } catch {
     return 0;

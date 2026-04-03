@@ -15,10 +15,13 @@ export async function fetchOrcaTokens(signal?: AbortSignal): Promise<Token[]> {
   const tokenMap = new Map<string, Token>();
 
   for (const pool of Object.values(data)) {
-    for (const [mint, tokenInfo] of Object.entries(pool.tokens ?? {})) {
-      if (!tokenMap.has(mint)) {
-        tokenMap.set(mint, {
-          address: mint,
+    for (const [, tokenInfo] of Object.entries(pool.tokens ?? {})) {
+      // Use tokenInfo.mint as the canonical address; the record key is not guaranteed
+      // to be the mint address and using it can produce incorrect token.address values.
+      const mintAddress = tokenInfo.mint;
+      if (!tokenMap.has(mintAddress)) {
+        tokenMap.set(mintAddress, {
+          address: mintAddress,
           chainId: 101,
           decimals: tokenInfo.decimals,
           name: tokenInfo.name,
@@ -29,7 +32,7 @@ export async function fetchOrcaTokens(signal?: AbortSignal): Promise<Token[]> {
           rank: 5,
         });
       } else {
-        const existing = tokenMap.get(mint)!;
+        const existing = tokenMap.get(mintAddress)!;
         if (!existing.sources.includes("orca")) {
           existing.sources.push("orca");
         }

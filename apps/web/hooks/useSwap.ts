@@ -6,6 +6,7 @@ import { useWallet } from "@/hooks/useWallet";
 import { getJupiterSwapTransaction } from "@askstudio/dex";
 import { getRpcConnection } from "@/lib/rpcClient";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { formatBaseUnits } from "@/lib/formatUnits";
 
 const DEBOUNCE_MS = 600;
 
@@ -68,9 +69,9 @@ export function useSwap() {
       }
 
       const route = await res.json();
-      const outAmount = parseFloat(route.outAmount) / Math.pow(10, outputToken.decimals);
+      // Use BigInt-based formatting to avoid float precision loss on large base-unit amounts.
       store.setRoute(route);
-      store.setOutputAmount(outAmount.toFixed(outputToken.decimals > 6 ? 6 : outputToken.decimals));
+      store.setOutputAmount(formatBaseUnits(route.outAmount, outputToken.decimals));
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== "AbortError") {
         store.setQuoteError(err.message);
