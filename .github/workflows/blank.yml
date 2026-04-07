@@ -53,3 +53,31 @@ jobs:
           NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${{ vars.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'public_default_project_id' }}
           NEXT_PUBLIC_FEE_RESERVE: ${{ vars.NEXT_PUBLIC_FEE_RESERVE || 'monads.skr' }}
           NEXT_PUBLIC_DEFAULT_FEE_BPS: ${{ vars.NEXT_PUBLIC_DEFAULT_FEE_BPS || '20' }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint all apps
+        run: pnpm turbo run lint --filter=!@askstudio/mobile --filter=!@askstudio/desktop
