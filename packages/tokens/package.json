@@ -12,7 +12,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@askstudio/config": "workspace:*"
+    "@askstudio/config": "workspace:*",
+    "@askstudio/web3": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.5",

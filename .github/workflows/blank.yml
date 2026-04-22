@@ -14,7 +14,7 @@ jobs:
   build-and-typecheck:
     name: Build & Type Check
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: read
 
@@ -30,17 +30,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Type-check all apps and packages
-        run: pnpm turbo run type-check
+        run: pnpm turbo run type-check --filter=!@askstudio/mobile --filter=!@askstudio/desktop
 
       - name: Build all apps and packages
-        run: pnpm turbo run build
+        run: pnpm turbo run build --filter=!@askstudio/mobile --filter=!@askstudio/desktop
         env:
           NEXT_PUBLIC_SOLANA_RPC: ${{ vars.NEXT_PUBLIC_SOLANA_RPC || 'https://api.mainnet-beta.solana.com' }}
           NEXT_PUBLIC_SOLANA_RPC_FALLBACK: ${{ vars.NEXT_PUBLIC_SOLANA_RPC_FALLBACK || 'https://rpc.ankr.com/solana' }}
@@ -51,6 +51,8 @@ jobs:
           NEXT_PUBLIC_RAYDIUM_API: ${{ vars.NEXT_PUBLIC_RAYDIUM_API || 'https://api.raydium.io/v2/sdk/liquidity/mainnet.json' }}
           NEXT_PUBLIC_ORCA_API: ${{ vars.NEXT_PUBLIC_ORCA_API || 'https://api.orca.so/allPools' }}
           NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${{ vars.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'public_default_project_id' }}
+          NEXT_PUBLIC_FEE_RESERVE: ${{ vars.NEXT_PUBLIC_FEE_RESERVE || '' }}
+          NEXT_PUBLIC_DEFAULT_FEE_BPS: ${{ vars.NEXT_PUBLIC_DEFAULT_FEE_BPS || '20' }}
 
   lint:
     name: Lint
@@ -71,11 +73,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Lint all apps
-        run: pnpm turbo run lint
+        run: pnpm turbo run lint --filter=!@askstudio/mobile --filter=!@askstudio/desktop

@@ -70,3 +70,24 @@ export interface RouteScore {
     latencyScore: number;
   };
 }
+
+export interface FeeConfig {
+  bps: number;
+  recipient: string;
+  enabled: boolean;
+}
+
+export interface AnalyticsEntry {
+  id: string;
+  timestamp: number;
+  inputMint: string;
+  outputMint: string;
+  inputAmount: string;
+  outputAmount: string;
+  feeAmountLamports: string;
+  feeBps?: number;
+  priceImpactPct: number;
+  routeCount: number;
+  signature?: string;
+  error?: string;
+}

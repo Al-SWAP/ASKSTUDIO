@@ -7,6 +7,7 @@ node_modules
 dist
 .turbo
 out
+build
 
 # Environment
 .env
@@ -36,3 +37,6 @@ pnpm-debug.log*
 # Testing
 coverage
 .nyc_output
+
+# Vercel
+.vercel

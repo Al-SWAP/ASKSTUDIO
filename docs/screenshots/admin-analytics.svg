@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#050508"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="800" fill="url(#bg)"/>
+
+  <!-- Top nav -->
+  <rect x="0" y="30" width="1280" height="52" fill="#111827" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="24" y="63" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="700" fill="#a78bfa">AskStudio Admin</text>
+  <text x="180" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">Dashboard</text>
+  <text x="268" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">RPC Health</text>
+  <text x="360" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">Tokens</text>
+  <text x="424" y="62" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" fill="white">Analytics</text>
+  <rect x="419" y="78" width="70" height="2" rx="1" fill="#a78bfa"/>
+
+  <!-- Page title -->
+  <text x="24" y="122" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="700" fill="white">Analytics</text>
+
+  <!-- ── 3 Stat Cards ── -->
+  <rect x="24" y="140" width="384" height="90" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="44" y="168" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.5)">Total Swaps</text>
+  <text x="44" y="212" font-family="Inter,system-ui,sans-serif" font-size="42" font-weight="700" fill="white">1,284</text>
+
+  <rect x="428" y="140" width="400" height="90" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="448" y="168" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.5)">Total Volume (lamports)</text>
+  <text x="448" y="212" font-family="Inter,system-ui,sans-serif" font-size="34" font-weight="700" fill="#a78bfa">9,483,210,000</text>
+
+  <rect x="848" y="140" width="408" height="90" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="868" y="168" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.5)">Fees Collected (lamports)</text>
+  <text x="868" y="212" font-family="Inter,system-ui,sans-serif" font-size="34" font-weight="700" fill="#4ade80">18,966,420</text>
+
+  <!-- ── Recent Swaps Table ── -->
+  <rect x="24" y="252" width="1232" height="480" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="44" y="284" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="600" fill="white">Recent Swaps</text>
+
+  <!-- Table header -->
+  <line x1="24" y1="298" x2="1256" y2="298" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="44" y="318" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Time</text>
+  <text x="144" y="318" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Input Mint</text>
+  <text x="444" y="318" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Output Mint</text>
+  <text x="744" y="318" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Fee BPS</text>
+  <text x="940" y="318" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Price Impact</text>
+  <text x="1100" y="318" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">Amount</text>
+  <line x1="24" y1="326" x2="1256" y2="326" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+  <!-- Row helper: time, inputMint, outputMint, feeBps, impact -->
+  <!-- Row 1 -->
+  <text x="44" y="350" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">19:42:07</text>
+  <text x="144" y="350" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">So111111…</text>
+  <text x="444" y="350" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">EPjFWdd5…</text>
+  <text x="744" y="350" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">20</text>
+  <text x="940" y="350" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">0.031%</text>
+  <text x="1100" y="350" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">1,500,000,000</text>
+  <line x1="44" y1="360" x2="1236" y2="360" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Row 2 -->
+  <text x="44" y="382" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">19:38:22</text>
+  <text x="144" y="382" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">EPjFWdd5…</text>
+  <text x="444" y="382" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">So111111…</text>
+  <text x="744" y="382" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">20</text>
+  <text x="940" y="382" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">0.018%</text>
+  <text x="1100" y="382" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">50,000,000</text>
+  <line x1="44" y1="392" x2="1236" y2="392" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Row 3 -->
+  <text x="44" y="414" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">19:31:05</text>
+  <text x="144" y="414" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">4k3Dyjzv…</text>
+  <text x="444" y="414" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">EPjFWdd5…</text>
+  <text x="744" y="414" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">20</text>
+  <text x="940" y="414" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">0.142%</text>
+  <text x="1100" y="414" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">2,000,000,000</text>
+  <line x1="44" y1="424" x2="1236" y2="424" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Row 4 -->
+  <text x="44" y="446" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">19:24:44</text>
+  <text x="144" y="446" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">So111111…</text>
+  <text x="444" y="446" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">orcaEKTd…</text>
+  <text x="744" y="446" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">20</text>
+  <text x="940" y="446" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">0.074%</text>
+  <text x="1100" y="446" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">500,000,000</text>
+  <line x1="44" y1="456" x2="1236" y2="456" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Row 5 -->
+  <text x="44" y="478" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">19:17:31</text>
+  <text x="144" y="478" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">7dHi6fMs…</text>
+  <text x="444" y="478" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">EPjFWdd5…</text>
+  <text x="744" y="478" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">20</text>
+  <text x="940" y="478" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">0.209%</text>
+  <text x="1100" y="478" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">750,000,000</text>
+  <line x1="44" y1="488" x2="1236" y2="488" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Row 6 -->
+  <text x="44" y="510" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">19:09:12</text>
+  <text x="144" y="510" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">EPjFWdd5…</text>
+  <text x="444" y="510" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">So111111…</text>
+  <text x="744" y="510" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">20</text>
+  <text x="940" y="510" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">0.012%</text>
+  <text x="1100" y="510" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">200,000,000</text>
+  <line x1="44" y1="520" x2="1236" y2="520" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Row 7 -->
+  <text x="44" y="542" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">19:01:58</text>
+  <text x="144" y="542" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">mSoLzYCx…</text>
+  <text x="444" y="542" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.6)">So111111…</text>
+  <text x="744" y="542" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">20</text>
+  <text x="940" y="542" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">0.055%</text>
+  <text x="1100" y="542" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.7)">3,000,000,000</text>
+  <line x1="44" y1="552" x2="1236" y2="552" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Row 8 -->
+  <text x="44" y="574" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.4)">18:54:03</text>
+  <text x="144" y="574" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.4)">So111111…</text>
+  <text x="444" y="574" font-family="monospace,monospace" font-size="11" fill="rgba(255,255,255,0.4)">EPjFWdd5…</text>
+  <text x="744" y="574" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.4)">20</text>
+  <text x="940" y="574" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.4)">0.088%</text>
+  <text x="1100" y="574" font-family="Inter,system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,0.4)">1,200,000,000</text>
+
+  <!-- fade-out gradient at bottom of table -->
+  <defs>
+    <linearGradient id="fadeOut" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="rgba(5,5,8,0.95)"/>
+    </linearGradient>
+  </defs>
+  <rect x="24" y="580" width="1232" height="150" fill="url(#fadeOut)"/>
+
+  <!-- Browser chrome -->
+  <rect x="0" y="0" width="1280" height="30" fill="rgba(0,0,0,0.6)"/>
+  <circle cx="18" cy="15" r="6" fill="#ff5f57"/>
+  <circle cx="38" cy="15" r="6" fill="#febc2e"/>
+  <circle cx="58" cy="15" r="6" fill="#28c840"/>
+  <rect x="200" y="7" width="880" height="16" rx="8" fill="rgba(255,255,255,0.08)"/>
+  <text x="640" y="19" font-family="Inter,system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.4)" text-anchor="middle">localhost:3001/admin/analytics</text>
+</svg>
