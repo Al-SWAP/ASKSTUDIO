@@ -1,48 +1,37 @@
-export type TokenSource = "jupiter" | "raydium" | "orca";
-
 export interface Token {
   address: string;
-  symbol: string;
-  name: string;
+  chainId: number;
   decimals: number;
+  name: string;
+  symbol: string;
   logoURI?: string;
   tags?: string[];
+  extensions?: Record<string, unknown>;
   sources: TokenSource[];
   rank?: number;
-  chainId?: number;
 }
+
+export type TokenSource = "jupiter" | "raydium" | "orca";
 
 export interface TokenList {
   tokens: Token[];
-  lastUpdated: number;
-  sources: TokenSource[];
+  updatedAt: number;
 }
 
-export interface JupiterTokenRaw {
-  address: string;
-  symbol: string;
-  name: string;
-  decimals: number;
-  logoURI?: string;
-  tags?: string[];
-  chainId?: number;
-}
-
-export interface RaydiumPoolRaw {
+export interface RaydiumPoolInfo {
+  id: string;
   baseMint: string;
   quoteMint: string;
-  lpMint?: string;
   baseDecimals: number;
   quoteDecimals: number;
-  lpDecimals?: number;
-  version?: number;
-  programId?: string;
-  id?: string;
+  lpMint: string;
+  version: number;
+  programId: string;
 }
 
-export interface OrcaPoolRaw {
-  tokenMintA: string;
-  tokenMintB: string;
-  decimalsA?: number;
-  decimalsB?: number;
+export interface OrcaPool {
+  tokenIds: string[];
+  tokens: Record<string, { name: string; decimals: number; mint: string; logoURI?: string }>;
+  curveType: number;
+  amp?: number;
 }

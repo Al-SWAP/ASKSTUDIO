@@ -1,134 +1,110 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useTokens, useTokenSearch } from "@/hooks/useTokens";
 import type { Token } from "@askstudio/tokens";
 
 interface TokenSelectorModalProps {
-  tokens: Token[];
-  onSelect: (token: Token) => void;
+  open: boolean;
   onClose: () => void;
+  onSelect: (token: Token) => void;
+  excludeMint?: string;
 }
 
-export function TokenSelectorModal({ tokens, onSelect, onClose }: TokenSelectorModalProps) {
+export function TokenSelectorModal({ open, onClose, onSelect, excludeMint }: TokenSelectorModalProps) {
   const [query, setQuery] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
-  const titleId = "token-selector-title";
+  const { tokens, isLoading } = useTokens();
+  const filtered = useTokenSearch(tokens, query).filter((t) => t.address !== excludeMint);
 
   useEffect(() => {
-    inputRef.current?.focus();
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
-      // Focus trap: keep focus inside the modal while it is open.
-      if (e.key === "Tab" && modalRef.current) {
-        const focusable = modalRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (e.shiftKey) {
-          if (document.activeElement === first) { e.preventDefault(); last?.focus(); }
-        } else {
-          if (document.activeElement === last) { e.preventDefault(); first?.focus(); }
-        }
-      }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onClose]);
+    if (!open) setQuery("");
+  }, [open]);
 
-  const filtered = query.trim().length === 0
-    ? tokens.slice(0, 100)
-    : tokens
-        .filter(
-          (t) =>
-            t.symbol.toLowerCase().includes(query.toLowerCase()) ||
-            t.name.toLowerCase().includes(query.toLowerCase()) ||
-            t.address.toLowerCase().startsWith(query.toLowerCase())
-        )
-        .slice(0, 50);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    },
+    [onClose]
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, handleKeyDown]);
+
+  if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="token-selector-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="relative w-full max-w-md glass rounded-2xl overflow-hidden shadow-2xl animate-slide-up"
-      >
+      <div className="glass-card w-full max-w-sm max-h-[80vh] flex flex-col shadow-2xl">
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h3 id={titleId} className="text-white font-semibold">Select Token</h3>
+          <h2 id="token-selector-title" className="font-semibold text-white">Select Token</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            ✕
           </button>
         </div>
-
-        <div className="p-4">
+        <div className="p-3 border-b border-white/5">
           <input
-            ref={inputRef}
+            type="text"
+            placeholder="Search by name, symbol or address..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, symbol, or address..."
-            className="w-full bg-white/10 text-white placeholder-white/30 rounded-xl px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-purple-500"
+            className="glass-input w-full text-sm"
+            autoFocus
           />
         </div>
-
-        <div className="max-h-80 overflow-y-auto">
-          {filtered.length === 0 ? (
-            <p className="text-center text-white/40 py-8 text-sm">No tokens found</p>
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8 text-white/40 text-sm">
+              Loading tokens...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex items-center justify-center p-8 text-white/40 text-sm">
+              No tokens found
+            </div>
           ) : (
-            filtered.map((token) => (
-              <button
-                key={token.address}
-                type="button"
-                onClick={() => onSelect(token)}
-                className="flex items-center gap-3 w-full px-4 py-3 hover:bg-white/10 transition-colors text-left group"
-              >
-                {token.logoURI ? (
-                  <img
-                    src={token.logoURI}
-                    alt={token.symbol}
-                    className="w-9 h-9 rounded-full flex-shrink-0"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    {token.symbol.slice(0, 2)}
+            <div className="p-2">
+              {filtered.map((token) => (
+                <button
+                  key={token.address}
+                  onClick={() => { onSelect(token); onClose(); }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors text-left"
+                >
+                  {token.logoURI ? (
+                    <img
+                      src={token.logoURI}
+                      alt={token.symbol}
+                      className="w-8 h-8 rounded-full flex-shrink-0"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-violet-600/30 flex items-center justify-center text-xs font-bold text-violet-300 flex-shrink-0">
+                      {token.symbol.slice(0, 2)}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-white text-sm">{token.symbol}</div>
+                    <div className="text-white/40 text-xs truncate">{token.name}</div>
                   </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="text-white font-semibold text-sm group-hover:text-purple-300 transition-colors">
-                    {token.symbol}
-                  </p>
-                  <p className="text-white/40 text-xs truncate">{token.name}</p>
-                </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  {token.sources.map((src) => (
-                    <span key={src} className="px-1.5 py-0.5 rounded text-[10px] bg-white/10 text-white/40">
-                      {src.slice(0, 3).toUpperCase()}
-                    </span>
-                  ))}
-                </div>
-              </button>
-            ))
+                  {token.tags?.includes("verified") && (
+                    <span className="text-green-400 text-xs">✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
           )}
-        </div>
-
-        <div className="p-3 border-t border-white/10 text-center text-xs text-white/30">
-          {tokens.length.toLocaleString()} tokens from Jupiter · Raydium · Orca
         </div>
       </div>
     </div>

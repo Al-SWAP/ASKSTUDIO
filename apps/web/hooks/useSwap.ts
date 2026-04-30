@@ -1,131 +1,176 @@
 "use client";
 
-import { useCallback } from "react";
-import { useWallet as useSolanaWallet, useConnection } from "@solana/wallet-adapter-react";
-import { VersionedTransaction, Transaction } from "@solana/web3.js";
-import { useSwapStore } from "../store/swapStore";
+import { useCallback, useEffect, useRef } from "react";
+import { useSwapStore } from "@/store/swapStore";
+import { useWallet } from "@/hooks/useWallet";
+import { getJupiterSwapTransaction } from "@askstudio/dex";
+import { getRpcConnection } from "@/lib/rpcClient";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { formatBaseUnits } from "@/lib/formatUnits";
 
-/** Browser-safe base64 → Uint8Array (avoids relying on Node Buffer polyfill) */
-function base64ToUint8Array(b64: string): Uint8Array {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+const DEBOUNCE_MS = 600;
+
+/** Convert a decimal string amount to base units (integer) without float precision loss.
+ * Rejects scientific notation (e.g. "1e-7") and non-decimal formats to prevent silent
+ * misparsing. Throws if the result exceeds Number.MAX_SAFE_INTEGER. */
+function toBaseUnits(amount: string, decimals: number): number {
+  // Only accept plain decimal strings (digits with optional single dot).
+  if (!/^\d*\.?\d*$/.test(amount) || amount === "" || amount === ".") return 0;
+  const [whole, frac = ""] = amount.split(".");
+  const fracPadded = frac.padEnd(decimals, "0").slice(0, decimals);
+  const combined = (whole || "0") + fracPadded;
+  const trimmed = combined.replace(/^0+(?=\d)/, "") || "0";
+  const result = parseInt(trimmed, 10);
+  if (isNaN(result)) return 0;
+  if (result > Number.MAX_SAFE_INTEGER) {
+    throw new Error("Amount too large to represent safely; please reduce the input amount.");
+  }
+  return result;
+}
+
+/** Decode a base64 string to Uint8Array without relying on Node's Buffer polyfill. */
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes;
 }
 
 export function useSwap() {
-  const { publicKey, signTransaction, connected } = useSolanaWallet();
-  const { connection } = useConnection();
-  const { route, setSwapping, setError, setTxSignature } = useSwapStore();
+  const store = useSwapStore();
+  const { publicKey, sendTransaction, connected } = useWallet();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const executeSwap = useCallback(async () => {
-    if (!connected || !publicKey || !route || !signTransaction) {
-      setError("Wallet not connected or no route available");
+  const fetchQuote = useCallback(async () => {
+    const { inputToken, outputToken, inputAmount, slippageBps } = useSwapStore.getState();
+
+    if (!inputToken || !outputToken || !inputAmount || parseFloat(inputAmount) <= 0) {
+      store.setRoute(null);
+      store.setOutputAmount("");
       return;
     }
 
-    setSwapping(true);
-    setError(null);
-    setTxSignature(null);
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    store.setIsLoadingQuote(true);
+    store.setQuoteError(null);
 
     try {
-      const res = await fetch("/api/swap", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          quoteResponse: route,
-          userPublicKey: publicKey.toBase58(),
-        }),
-      });
+      const amount = toBaseUnits(inputAmount, inputToken.decimals);
+      const res = await fetch(
+        `/api/quote?inputMint=${inputToken.address}&outputMint=${outputToken.address}&amount=${amount}&slippageBps=${slippageBps}`,
+        { signal: abortRef.current.signal }
+      );
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Swap build failed" }));
-        throw new Error(err.error ?? `Swap failed: ${res.status}`);
+        const err = await res.json().catch(() => ({ error: "Quote failed" }));
+        throw new Error(err.error ?? "Quote failed");
       }
 
-      const { swapTransaction, lastValidBlockHeight: apiLastValidBlockHeight } = await res.json();
-      if (!swapTransaction) throw new Error("No swap transaction returned");
-
-      // Browser-safe decode — avoids dependency on Node.js Buffer polyfill
-      const txBytes = base64ToUint8Array(swapTransaction);
-
-      let signature: string;
-      // Coherent blockhash context for confirmation; null means fall back to commitment-only confirmation.
-      let confirmCtx: { blockhash: string; lastValidBlockHeight: number } | null = null;
-
-      try {
-        // Versioned transaction path
-        const versionedTx = VersionedTransaction.deserialize(txBytes);
-        const txBlockhash = versionedTx.message.recentBlockhash;
-
-        // Only use blockhash-based confirmation when the API provides a coherent
-        // lastValidBlockHeight for the same blockhash baked into the transaction.
-        if (apiLastValidBlockHeight !== undefined) {
-          confirmCtx = { blockhash: txBlockhash, lastValidBlockHeight: apiLastValidBlockHeight };
-        }
-
-        const signed = await (signTransaction as (tx: VersionedTransaction) => Promise<VersionedTransaction>)(
-          versionedTx
-        );
-        signature = await connection.sendRawTransaction(signed.serialize(), {
-          skipPreflight: false,
-          maxRetries: 3,
-        });
-      } catch {
-        // Legacy transaction fallback
-        const legacyTx = Transaction.from(txBytes);
-
-        if (legacyTx.recentBlockhash && apiLastValidBlockHeight !== undefined) {
-          // Both values come from coherent sources (tx + API).
-          confirmCtx = { blockhash: legacyTx.recentBlockhash, lastValidBlockHeight: apiLastValidBlockHeight };
-        } else {
-          // Fetch once so blockhash and lastValidBlockHeight always come from the same RPC response.
-          const latestBh = await connection.getLatestBlockhash();
-          confirmCtx = { blockhash: latestBh.blockhash, lastValidBlockHeight: latestBh.lastValidBlockHeight };
-        }
-
-        const signed = await signTransaction(legacyTx);
-        signature = await connection.sendRawTransaction(signed.serialize(), {
-          skipPreflight: false,
-          maxRetries: 3,
-        });
-      }
-
-      // Confirm using a coherent blockhash + lastValidBlockHeight pair when available,
-      // otherwise fall back to commitment-only confirmation to avoid mismatched contexts.
-      if (confirmCtx) {
-        await connection.confirmTransaction({ signature, ...confirmCtx }, "confirmed");
-      } else {
-        await connection.confirmTransaction(signature, "confirmed");
-      }
-
-      setTxSignature(signature);
-
-      // Record analytics on the server so the admin dashboard can see them.
-      // Amounts are kept as strings to avoid Number.MAX_SAFE_INTEGER precision loss on u64 values.
-      fetch("/api/analytics", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          inputMint: route.inputMint,
-          outputMint: route.outputMint,
-          inputAmount: route.inAmount,
-          outputAmount: route.outAmount,
-          feeBps: route.platformFee?.feeBps ?? 0,
-          feeAmountLamports: route.platformFee?.amount ?? "0",
-          signature,
-          priceImpactPct: parseFloat(route.priceImpactPct),
-          routeCount: route.routePlan?.length ?? 1,
-        }),
-      }).catch(() => {/* non-critical — don't fail the swap */});
+      const route = await res.json();
+      // Use BigInt-based formatting to avoid float precision loss on large base-unit amounts.
+      store.setRoute(route);
+      store.setOutputAmount(formatBaseUnits(route.outAmount, outputToken.decimals));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Swap failed");
+      if (err instanceof Error && err.name !== "AbortError") {
+        store.setQuoteError(err.message);
+        store.setRoute(null);
+        store.setOutputAmount("");
+      }
     } finally {
-      setSwapping(false);
+      store.setIsLoadingQuote(false);
     }
-  }, [connected, publicKey, route, signTransaction, connection, setSwapping, setError, setTxSignature]);
+  }, [store]);
 
-  return { executeSwap };
+  const debouncedFetchQuote = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(fetchQuote, DEBOUNCE_MS);
+  }, [fetchQuote]);
+
+  useEffect(() => {
+    debouncedFetchQuote();
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [
+    store.inputToken?.address,
+    store.outputToken?.address,
+    store.inputAmount,
+    store.slippageBps,
+    debouncedFetchQuote,
+  ]);
+
+  const executeSwap = useCallback(async () => {
+    const { route } = useSwapStore.getState();
+    if (!route || !publicKey || !connected) return;
+
+    store.setIsSwapping(true);
+    store.setSwapError(null);
+    store.setSwapTxSignature(null);
+
+    try {
+      const swapData = await getJupiterSwapTransaction({
+        quoteResponse: route,
+        userPublicKey: publicKey.toBase58(),
+        wrapAndUnwrapSol: true,
+      });
+
+      const connection = await getRpcConnection("confirmed");
+      const txBytes = base64ToUint8Array(swapData.swapTransaction);
+
+      let tx: Transaction | VersionedTransaction;
+      let recentBlockhash: string;
+      try {
+        const versioned = VersionedTransaction.deserialize(txBytes);
+        tx = versioned;
+        recentBlockhash = versioned.message.recentBlockhash;
+      } catch {
+        const legacy = Transaction.from(txBytes);
+        tx = legacy;
+        if (!legacy.recentBlockhash) {
+          throw new Error("Transaction is missing recentBlockhash; cannot confirm.");
+        }
+        recentBlockhash = legacy.recentBlockhash;
+      }
+
+      const sig = await sendTransaction(tx, connection, {
+        maxRetries: 3,
+        skipPreflight: false,
+        preflightCommitment: "confirmed",
+      });
+
+      store.setSwapTxSignature(sig);
+
+      await connection.confirmTransaction(
+        {
+          signature: sig,
+          lastValidBlockHeight: swapData.lastValidBlockHeight,
+          blockhash: recentBlockhash,
+        },
+        "confirmed"
+      );
+    } catch (err: unknown) {
+      store.setSwapError(err instanceof Error ? err.message : "Swap failed");
+    } finally {
+      store.setIsSwapping(false);
+    }
+  }, [publicKey, sendTransaction, connected, store]);
+
+  return {
+    ...store,
+    fetchQuote,
+    executeSwap,
+    canSwap:
+      connected &&
+      !!store.inputToken &&
+      !!store.outputToken &&
+      !!store.inputAmount &&
+      parseFloat(store.inputAmount) > 0 &&
+      !!store.route &&
+      !store.isSwapping,
+  };
 }

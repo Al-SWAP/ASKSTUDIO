@@ -1,69 +1,73 @@
 import { create } from "zustand";
 import type { Token } from "@askstudio/tokens";
 import type { SwapRoute } from "@askstudio/dex";
-import { DEFAULT_SLIPPAGE_BPS } from "@askstudio/config";
 
-interface SwapState {
+export interface SwapState {
   inputToken: Token | null;
   outputToken: Token | null;
   inputAmount: string;
+  outputAmount: string;
   slippageBps: number;
   route: SwapRoute | null;
   isLoadingQuote: boolean;
+  quoteError: string | null;
   isSwapping: boolean;
-  error: string | null;
-  txSignature: string | null;
+  swapError: string | null;
+  swapTxSignature: string | null;
+}
 
+export interface SwapActions {
   setInputToken: (token: Token | null) => void;
   setOutputToken: (token: Token | null) => void;
   setInputAmount: (amount: string) => void;
+  setOutputAmount: (amount: string) => void;
   setSlippageBps: (bps: number) => void;
   setRoute: (route: SwapRoute | null) => void;
-  setLoadingQuote: (loading: boolean) => void;
-  setSwapping: (swapping: boolean) => void;
-  setError: (error: string | null) => void;
-  setTxSignature: (sig: string | null) => void;
-  swapTokens: () => void;
+  setIsLoadingQuote: (loading: boolean) => void;
+  setQuoteError: (error: string | null) => void;
+  setIsSwapping: (swapping: boolean) => void;
+  setSwapError: (error: string | null) => void;
+  setSwapTxSignature: (sig: string | null) => void;
+  flipTokens: () => void;
   reset: () => void;
 }
 
-export const useSwapStore = create<SwapState>((set, get) => ({
+const initialState: SwapState = {
   inputToken: null,
   outputToken: null,
   inputAmount: "",
-  slippageBps: DEFAULT_SLIPPAGE_BPS,
+  outputAmount: "",
+  slippageBps: 50,
   route: null,
   isLoadingQuote: false,
+  quoteError: null,
   isSwapping: false,
-  error: null,
-  txSignature: null,
+  swapError: null,
+  swapTxSignature: null,
+};
 
-  setInputToken: (token) => set({ inputToken: token, route: null }),
-  setOutputToken: (token) => set({ outputToken: token, route: null }),
-  setInputAmount: (amount) => set({ inputAmount: amount, route: null }),
+export const useSwapStore = create<SwapState & SwapActions>()((set, get) => ({
+  ...initialState,
+  setInputToken: (token) => set({ inputToken: token, route: null, outputAmount: "" }),
+  setOutputToken: (token) => set({ outputToken: token, route: null, outputAmount: "" }),
+  setInputAmount: (amount) => set({ inputAmount: amount }),
+  setOutputAmount: (amount) => set({ outputAmount: amount }),
   setSlippageBps: (bps) => set({ slippageBps: bps }),
   setRoute: (route) => set({ route }),
-  setLoadingQuote: (loading) => set({ isLoadingQuote: loading }),
-  setSwapping: (swapping) => set({ isSwapping: swapping }),
-  setError: (error) => set({ error }),
-  setTxSignature: (sig) => set({ txSignature: sig }),
-
-  swapTokens: () => {
-    const { inputToken, outputToken, inputAmount } = get();
+  setIsLoadingQuote: (loading) => set({ isLoadingQuote: loading }),
+  setQuoteError: (error) => set({ quoteError: error }),
+  setIsSwapping: (swapping) => set({ isSwapping: swapping }),
+  setSwapError: (error) => set({ swapError: error }),
+  setSwapTxSignature: (sig) => set({ swapTxSignature: sig }),
+  flipTokens: () => {
+    const { inputToken, outputToken, outputAmount } = get();
     set({
       inputToken: outputToken,
       outputToken: inputToken,
-      inputAmount: "",
+      inputAmount: outputAmount,
+      outputAmount: "",
       route: null,
     });
   },
-
-  reset: () =>
-    set({
-      route: null,
-      error: null,
-      txSignature: null,
-      isLoadingQuote: false,
-      isSwapping: false,
-    }),
+  reset: () => set(initialState),
 }));

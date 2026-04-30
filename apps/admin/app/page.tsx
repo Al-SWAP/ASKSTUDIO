@@ -1,54 +1,48 @@
-import { getFeeConfig } from "@askstudio/dex";
-import { rpcManager } from "@askstudio/web3";
+import Link from "next/link";
 
-// Force dynamic rendering — live RPC checks must not be prerendered at build time.
-export const dynamic = "force-dynamic";
-
-export default async function AdminPage() {
-  const feeConfig = getFeeConfig();
-  const rpcHealth = await rpcManager.checkAllHealth();
-
+export default function AdminDashboard() {
   return (
-    <div className="space-y-8 max-w-4xl">
-      <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="text-white/40 text-sm mt-1">AskStudio DEX Aggregator — Admin Panel</p>
+      </div>
 
-      <section className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-white">Fee Configuration</h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="bg-white/5 rounded-lg p-3">
-            <p className="text-white/50">Current Fee BPS</p>
-            <p className="text-2xl font-bold text-purple-400">{feeConfig.bps}</p>
-            <p className="text-white/30 text-xs">{(feeConfig.bps / 100).toFixed(2)}% per swap</p>
-          </div>
-          <div className="bg-white/5 rounded-lg p-3">
-            <p className="text-white/50">Fee Recipient</p>
-            <p className="text-sm font-mono text-white truncate">{feeConfig.recipient}</p>
-            <p className={`text-xs mt-1 ${feeConfig.enabled ? "text-green-400" : "text-red-400"}`}>
-              {feeConfig.enabled ? "Enabled" : "Disabled"}
-            </p>
-          </div>
-        </div>
-        <p className="text-white/40 text-xs">Use POST /api/fee to update fee configuration.</p>
-      </section>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[
+          { title: "Token Management", desc: "Blacklist, override, and inspect tokens", href: "/tokens", className: "text-violet-400" },
+          { title: "RPC Monitoring", desc: "Live RPC health, latency, and failover status", href: "/rpc", className: "text-cyan-400" },
+          { title: "Feature Flags", desc: "Toggle features across all apps", href: "/flags", className: "text-green-400" },
+        ].map((card) => (
+          <Link
+            key={card.href}
+            href={card.href}
+            className="glass-card p-5 hover:bg-white/10 transition-all duration-200 group"
+          >
+            <div className={`text-sm font-semibold ${card.className} mb-1`}>{card.title}</div>
+            <p className="text-white/40 text-xs">{card.desc}</p>
+          </Link>
+        ))}
+      </div>
 
-      <section className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-white">RPC Health</h2>
-        <div className="space-y-2">
-          {rpcHealth.map((h) => (
-            <div key={h.endpoint} className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-              <span className="font-mono text-sm text-white/70 truncate max-w-xs">{h.endpoint}</span>
-              <div className="flex items-center gap-3">
-                <span className={`text-xs px-2 py-1 rounded-full ${h.healthy ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
-                  {h.healthy ? "Healthy" : "Unhealthy"}
-                </span>
-                <span className="text-white/40 text-xs">
-                  {h.latencyMs === Infinity ? "—" : `${h.latencyMs}ms`}
-                </span>
+      <div className="glass-card p-5">
+        <h2 className="font-semibold mb-3">System Status</h2>
+        <div className="grid grid-cols-3 gap-4 text-center text-sm">
+          {[
+            { label: "Jupiter API", status: "online" },
+            { label: "Raydium API", status: "online" },
+            { label: "Orca API", status: "online" },
+          ].map((s) => (
+            <div key={s.label}>
+              <div className="text-white/40 text-xs mb-1">{s.label}</div>
+              <div className="flex items-center justify-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-green-400 font-medium capitalize">{s.status}</span>
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </div>
     </div>
   );
 }

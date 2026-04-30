@@ -1,18 +1,16 @@
-import { type Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey, Transaction, VersionedTransaction, Connection } from "@solana/web3.js";
 
 export interface WalletInfo {
-  publicKey: string;
-  balance: number;
-  network: "mainnet-beta" | "devnet" | "testnet" | "unknown";
+  publicKey: PublicKey | null;
+  connected: boolean;
+  connecting: boolean;
 }
 
-/**
- * Returns true only when `address` decodes to a valid 32-byte Solana public key.
- * Uses the `PublicKey` constructor rather than a regex so that base58 strings
- * that pass the character-set check but decode to the wrong byte length are
- * correctly rejected.
- */
-export function validatePublicKey(address: string): boolean {
+export function shortenAddress(address: string, chars = 4): string {
+  return `${address.slice(0, chars)}...${address.slice(-chars)}`;
+}
+
+export function isValidSolanaAddress(address: string): boolean {
   try {
     new PublicKey(address);
     return true;
@@ -21,16 +19,35 @@ export function validatePublicKey(address: string): boolean {
   }
 }
 
-export function truncateAddress(address: string, chars = 4): string {
-  if (address.length <= chars * 2 + 3) return address;
-  return `${address.slice(0, chars)}...${address.slice(-chars)}`;
+export async function getSolBalance(connection: Connection, publicKey: PublicKey): Promise<number> {
+  const lamports = await connection.getBalance(publicKey);
+  return lamports / 1e9;
 }
 
-export async function getSolBalance(
+export async function getTokenBalance(
   connection: Connection,
-  walletAddress: string
+  walletPublicKey: PublicKey,
+  tokenMint: PublicKey
 ): Promise<number> {
-  const { PublicKey } = await import("@solana/web3.js");
-  const lamports = await connection.getBalance(new PublicKey(walletAddress));
-  return lamports / 1e9;
+  try {
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletPublicKey, {
+      mint: tokenMint,
+    });
+    if (tokenAccounts.value.length === 0) return 0;
+    // Sum across all token accounts for the same mint to avoid under-reporting.
+    // Use uiAmountString (a decimal string from the RPC) rather than uiAmount (a float)
+    // to reduce rounding errors; parseFloat of a decimal string is still approximate for
+    // display-only purposes, but avoids the extra float multiplication inherent in uiAmount.
+    return tokenAccounts.value.reduce((sum, account) => {
+      const uiAmountStr: string | null =
+        account.account.data.parsed.info.tokenAmount.uiAmountString;
+      return sum + parseFloat(uiAmountStr ?? "0");
+    }, 0);
+  } catch {
+    return 0;
+  }
+}
+
+export function isVersionedTransaction(tx: Transaction | VersionedTransaction): tx is VersionedTransaction {
+  return "version" in tx;
 }

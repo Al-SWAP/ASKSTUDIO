@@ -1,26 +1,35 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import dynamic from "next/dynamic";
+
+const WalletMultiButton = dynamic(
+  async () => {
+    const { WalletMultiButton } = await import("@solana/wallet-adapter-react-ui");
+    return WalletMultiButton;
+  },
+  { ssr: false, loading: () => (
+    <button className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm">
+      Loading...
+    </button>
+  )}
+);
 
 export function WalletButton() {
-  const { connected, publicKey, disconnect } = useWallet();
-
-  if (connected && publicKey) {
-    const addr = publicKey.toBase58();
-    const short = `${addr.slice(0, 4)}...${addr.slice(-4)}`;
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-white/60 font-mono">{short}</span>
-        <button
-          onClick={() => disconnect()}
-          className="px-3 py-1.5 text-xs rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-400 hover:text-red-300 transition-colors border border-red-500/30"
-        >
-          Disconnect
-        </button>
-      </div>
-    );
-  }
-
-  return <WalletMultiButton className="!bg-purple-600 hover:!bg-purple-500 !rounded-xl !text-sm !px-4 !py-2" />;
+  return (
+    <div className="wallet-button-wrapper">
+      <WalletMultiButton
+        style={{
+          background: "rgba(139, 92, 246, 0.2)",
+          border: "1px solid rgba(139, 92, 246, 0.4)",
+          borderRadius: "12px",
+          color: "white",
+          fontSize: "14px",
+          fontWeight: 600,
+          padding: "8px 16px",
+          height: "auto",
+          transition: "all 0.2s",
+        }}
+      />
+    </div>
+  );
 }

@@ -1,26 +1,39 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { Token, TokenList } from "@askstudio/tokens";
+import type { Token } from "@askstudio/tokens";
 
-export function useTokens() {
-  return useQuery<TokenList, Error>({
-    queryKey: ["tokens"],
-    queryFn: async () => {
-      const res = await fetch("/api/tokens");
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Unknown" }));
-        throw new Error(err.error ?? `Token fetch failed: ${res.status}`);
-      }
-      return res.json();
-    },
-    staleTime: 3_600_000,
-    gcTime: 7_200_000,
-    retry: 3,
-  });
+async function fetchTokens(): Promise<Token[]> {
+  const res = await fetch("/api/tokens");
+  if (!res.ok) throw new Error("Failed to fetch tokens");
+  const data = await res.json();
+  return data.tokens as Token[];
 }
 
-export function useTokenByAddress(address: string | undefined, tokens: Token[] | undefined) {
-  if (!address || !tokens) return null;
-  return tokens.find((t) => t.address === address) ?? null;
+export function useTokens() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["tokens"],
+    queryFn: fetchTokens,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  return {
+    tokens: data ?? [],
+    isLoading,
+    error: error?.message ?? null,
+  };
+}
+
+export function useTokenSearch(tokens: Token[], query: string): Token[] {
+  if (!query.trim()) return tokens.slice(0, 100);
+  const q = query.toLowerCase().trim();
+  return tokens
+    .filter(
+      (t) =>
+        t.symbol.toLowerCase().includes(q) ||
+        t.name.toLowerCase().includes(q) ||
+        t.address.toLowerCase() === q
+    )
+    .slice(0, 50);
 }

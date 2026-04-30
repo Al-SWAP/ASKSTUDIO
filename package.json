@@ -18,10 +18,5 @@
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
-  },
-  "dependencies": {
-    "@types/bs58": "^5.0.0",
-    "bs58": "^6.0.0",
-    "tweetnacl": "^1.0.3"
   }
 }

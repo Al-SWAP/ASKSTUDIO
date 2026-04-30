@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { env, MAX_SLIPPAGE_BPS, MIN_SLIPPAGE_BPS } from "@askstudio/config";
-import { getPlatformFeeBps } from "@askstudio/dex";
+import { env, MAX_SLIPPAGE_BPS } from "@askstudio/config";
 
 export const runtime = "edge";
 
@@ -14,63 +13,60 @@ export async function GET(req: NextRequest) {
   const slippageBpsRaw = searchParams.get("slippageBps") ?? "50";
 
   if (!inputMint || !outputMint || !amount) {
-    return NextResponse.json({ error: "Missing required parameters: inputMint, outputMint, amount" }, { status: 400 });
+    return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
   }
 
   const amountNum = parseInt(amount, 10);
   if (isNaN(amountNum) || amountNum <= 0) {
-    return NextResponse.json({ error: "Invalid amount: must be a positive integer" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
   }
 
-  const slippageBps = Math.max(
-    MIN_SLIPPAGE_BPS,
-    Math.min(MAX_SLIPPAGE_BPS, parseInt(slippageBpsRaw, 10) || 50)
-  );
-
-  const platformFeeBps = getPlatformFeeBps();
+  const slippageBpsNum = parseInt(slippageBpsRaw, 10);
+  if (isNaN(slippageBpsNum) || slippageBpsNum < 0) {
+    return NextResponse.json({ error: "Invalid slippageBps" }, { status: 400 });
+  }
+  const slippageBps = Math.min(slippageBpsNum, MAX_SLIPPAGE_BPS).toString();
 
   const params = new URLSearchParams({
     inputMint,
     outputMint,
     amount: amountNum.toString(),
-    slippageBps: slippageBps.toString(),
+    slippageBps,
     swapMode: "ExactIn",
   });
 
-  if (platformFeeBps > 0) {
-    params.set("platformFeeBps", platformFeeBps.toString());
-  }
-
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), QUOTE_TIMEOUT_MS);
-    let res: Response;
-    try {
-      res = await fetch(`${env.JUPITER_API}/quote?${params.toString()}`, {
-        headers: { Accept: "application/json" },
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeoutId);
-    }
+    const response = await fetch(`${env.JUPITER_API}/quote?${params.toString()}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(QUOTE_TIMEOUT_MS),
+    });
 
-    if (!res.ok) {
-      const errText = await res.text();
+    if (!response.ok) {
+      const errText = await response.text();
       return NextResponse.json(
-        { error: `Jupiter quote error: ${errText}` },
-        { status: res.status >= 500 ? 502 : res.status }
+        { error: `Jupiter API error: ${errText}` },
+        { status: response.status }
       );
     }
 
-    const data = await res.json();
-    return NextResponse.json(data, {
-      headers: { "Cache-Control": "no-store, max-age=0" },
+    const data = await response.json();
+    // Jupiter v6 /quote returns the route object directly. If a future API version
+    // wraps it in { data: [...] }, extract the best (first) route automatically.
+    const route =
+      data &&
+      typeof data === "object" &&
+      Array.isArray((data as Record<string, unknown>).data) &&
+      ((data as Record<string, unknown>).data as unknown[]).length > 0
+        ? ((data as Record<string, unknown>).data as unknown[])[0]
+        : data;
+    return NextResponse.json(route, {
+      headers: {
+        "Cache-Control": "no-store",
+        "Content-Type": "application/json",
+      },
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    if (message.includes("timeout") || message.includes("abort")) {
-      return NextResponse.json({ error: "Quote request timed out" }, { status: 504 });
-    }
-    return NextResponse.json({ error: `Quote failed: ${message}` }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Quote fetch failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

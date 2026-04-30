@@ -8,14 +8,11 @@ export const env = {
   RAYDIUM_API: process.env.NEXT_PUBLIC_RAYDIUM_API ?? "https://api.raydium.io/v2/sdk/liquidity/mainnet.json",
   ORCA_API: process.env.NEXT_PUBLIC_ORCA_API ?? "https://api.orca.so/allPools",
   WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "public_default_project_id",
-  // FEE_RESERVE must be a valid base58 SPL token account (ATA) for the fee mint.
-  // Leave empty to disable platform fees in default/local setups.
   FEE_RESERVE: process.env.NEXT_PUBLIC_FEE_RESERVE ?? "",
   DEFAULT_FEE_BPS: (() => {
-    const v = parseInt(process.env.NEXT_PUBLIC_DEFAULT_FEE_BPS ?? "20", 10);
-    return Number.isFinite(v) ? v : 20;
+    const parsed = parseInt(process.env.NEXT_PUBLIC_DEFAULT_FEE_BPS ?? "20", 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 20;
   })(),
-  ADMIN_WALLET_WHITELIST: (process.env.ADMIN_WALLET_WHITELIST ?? "").split(",").filter(Boolean),
 } as const;
 
 export type Env = typeof env;
@@ -26,10 +23,11 @@ export const RPC_ENDPOINTS = [
   env.SOLANA_RPC_BACKUP,
 ] as const;
 
-export const MAX_SLIPPAGE_BPS = 500;
-export const MIN_SLIPPAGE_BPS = 1;
-export const DEFAULT_SLIPPAGE_BPS = 50;
-export const MAX_FEE_BPS = 200;
-export const MIN_FEE_BPS = 0;
-export const RATE_LIMIT_WINDOW_MS = 60_000;
-export const RATE_LIMIT_MAX_REQUESTS = 60;
+/** Maximum platform fee in basis points (10% = 1000 bps). */
+export const MAX_FEE_BPS = 1000;
+
+/** Minimum non-zero platform fee in basis points (0.01% = 1 bps). */
+export const MIN_FEE_BPS = 1;
+
+/** Maximum slippage in basis points (50% = 5000 bps). */
+export const MAX_SLIPPAGE_BPS = 5000;

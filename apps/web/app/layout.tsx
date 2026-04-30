@@ -1,24 +1,30 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { QueryProvider } from "../providers/QueryProvider";
-import { WalletProvider } from "../providers/WalletProvider";
+import { QueryProvider } from "@/providers/QueryProvider";
+import { WalletProvider } from "@/providers/WalletProvider";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "AskStudio — Jupiter-class DEX Aggregator",
-  description: "AI-powered DEX aggregator with multi-source liquidity, real-time routing, and on-chain fee capture",
-};
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
+  title: "AskStudio DEX | Best Solana Swap Rates",
+  description: "Aggregate the best swap routes across Jupiter, Raydium, and Orca on Solana",
+  keywords: ["solana", "dex", "swap", "defi", "aggregator"],
+  openGraph: {
+    title: "AskStudio DEX",
+    description: "Best Solana swap rates aggregated",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans`}>
         <QueryProvider>
-          <WalletProvider>{children}</WalletProvider>
+          <WalletProvider>
+            {children}
+          </WalletProvider>
         </QueryProvider>
       </body>
     </html>

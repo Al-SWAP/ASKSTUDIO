@@ -2,29 +2,29 @@
 const nextConfig = {
   transpilePackages: [
     "@askstudio/config",
-    "@askstudio/dex",
-    "@askstudio/tokens",
-    "@askstudio/ui",
     "@askstudio/web3",
+    "@askstudio/tokens",
+    "@askstudio/dex",
+    "@askstudio/ui",
   ],
   images: {
     remotePatterns: [
+      { protocol: "https", hostname: "**.jup.ag" },
       { protocol: "https", hostname: "raw.githubusercontent.com" },
+      { protocol: "https", hostname: "**.solana.com" },
+      { protocol: "https", hostname: "**.raydium.io" },
+      { protocol: "https", hostname: "**.orca.so" },
       { protocol: "https", hostname: "arweave.net" },
-      { protocol: "https", hostname: "**.ipfs.io" },
-      { protocol: "https", hostname: "shdw-drive.genesysgo.net" },
     ],
   },
-  async headers() {
-    return [
-      {
-        source: "/api/:path*",
-        headers: [
-          { key: "Cache-Control", value: "no-store" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-        ],
-      },
-    ];
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
+    return config;
   },
 };
 

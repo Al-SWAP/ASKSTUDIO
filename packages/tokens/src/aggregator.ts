@@ -16,11 +16,7 @@ function mergeToken(base: Token, incoming: Token): Token {
   }
   const sourcesSet = new Set([...merged.sources, ...incoming.sources]);
   merged.sources = Array.from(sourcesSet) as TokenSource[];
-  merged.rank = (merged.rank ?? 0) + (incoming.rank ?? 0);
-  if (incoming.tags) {
-    const tagsSet = new Set([...(merged.tags ?? []), ...incoming.tags]);
-    merged.tags = Array.from(tagsSet);
-  }
+  // rank is recomputed for all tokens via rankToken() in aggregateTokens; no need to accumulate here.
   return merged;
 }
 
@@ -42,23 +38,28 @@ export async function aggregateTokens(signal?: AbortSignal): Promise<TokenList> 
     fetchOrcaTokens(signal),
   ]);
 
-  const tokenMap = new Map<string, Token>();
-  const successfulSources: TokenSource[] = [];
+  const fulfilled = results.filter(
+    (r): r is PromiseFulfilledResult<Token[]> => r.status === "fulfilled"
+  );
 
-  const sourceLabels: TokenSource[] = ["jupiter", "raydium", "orca"];
-  for (let i = 0; i < results.length; i++) {
-    const result = results[i]!;
-    if (result.status === "fulfilled") {
-      successfulSources.push(sourceLabels[i]!);
-      for (const token of result.value) {
-        const existing = tokenMap.get(token.address);
-        tokenMap.set(token.address, existing ? mergeToken(existing, token) : token);
-      }
-    }
+  if (fulfilled.length === 0) {
+    const errors = results
+      .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+      .map((r) => (r.reason instanceof Error ? r.reason.message : String(r.reason)));
+    throw new Error(`All token sources failed: ${errors.join("; ")}`);
   }
 
-  if (successfulSources.length === 0) {
-    throw new Error("All token sources failed to respond");
+  const tokenMap = new Map<string, Token>();
+
+  for (const result of fulfilled) {
+    for (const token of result.value) {
+      const existing = tokenMap.get(token.address);
+      if (existing) {
+        tokenMap.set(token.address, mergeToken(existing, token));
+      } else {
+        tokenMap.set(token.address, { ...token });
+      }
+    }
   }
 
   const tokens = Array.from(tokenMap.values())
@@ -67,52 +68,21 @@ export async function aggregateTokens(signal?: AbortSignal): Promise<TokenList> 
 
   return {
     tokens,
-    lastUpdated: Date.now(),
-    sources: successfulSources,
+    updatedAt: Date.now(),
   };
 }
 
-// NOTE: BLACKLISTED_MINTS is process-local (in-memory). In serverless/edge deployments
-// each cold start begins with an empty set and state is not shared across instances.
-// For production use, persist the blacklist in a durable store (DB/KV) and drive it
-// from there. This implementation is intentionally scoped to local/single-process usage.
-const BLACKLISTED_MINTS = new Set<string>();
-
-export function blacklistToken(mint: string): void {
-  BLACKLISTED_MINTS.add(mint);
+export function searchTokens(tokens: Token[], query: string): Token[] {
+  const q = query.toLowerCase().trim();
+  if (!q) return tokens;
+  return tokens.filter(
+    (t) =>
+      t.symbol.toLowerCase().includes(q) ||
+      t.name.toLowerCase().includes(q) ||
+      t.address.toLowerCase() === q
+  );
 }
 
-export function unblacklistToken(mint: string): void {
-  BLACKLISTED_MINTS.delete(mint);
-}
-
-export function getBlacklist(): string[] {
-  return Array.from(BLACKLISTED_MINTS);
-}
-
-export function filterTokenList(list: TokenList): TokenList {
-  return {
-    ...list,
-    tokens: list.tokens.filter((t) => !BLACKLISTED_MINTS.has(t.address)),
-  };
-}
-
-export function buildFastIndex(list: TokenList): { byAddress: Map<string, Token>; bySymbol: Map<string, Token[]> } {
-  const byAddress = new Map<string, Token>();
-  const bySymbol = new Map<string, Token[]>();
-
-  for (const token of list.tokens) {
-    byAddress.set(token.address, token);
-
-    // Symbols are NOT unique on Solana — index to an array to avoid overwriting
-    const key = token.symbol.toLowerCase();
-    const existing = bySymbol.get(key);
-    if (existing) {
-      existing.push(token);
-    } else {
-      bySymbol.set(key, [token]);
-    }
-  }
-
-  return { byAddress, bySymbol };
+export function getTokenByMint(tokens: Token[], mint: string): Token | undefined {
+  return tokens.find((t) => t.address === mint);
 }

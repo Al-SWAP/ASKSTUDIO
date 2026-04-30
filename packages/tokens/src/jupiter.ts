@@ -1,39 +1,39 @@
 import { env } from "@askstudio/config";
-import type { Token, JupiterTokenRaw } from "./types";
-import { combineSignals } from "./utils";
+import type { Token } from "./types";
 
-const FETCH_TIMEOUT_MS = 15_000;
+interface JupiterToken {
+  address: string;
+  chainId: number;
+  decimals: number;
+  name: string;
+  symbol: string;
+  logoURI?: string;
+  tags?: string[];
+  extensions?: Record<string, unknown>;
+}
 
 export async function fetchJupiterTokens(signal?: AbortSignal): Promise<Token[]> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  const combined = signal
-    ? combineSignals([signal, controller.signal])
-    : controller.signal;
+  const response = await fetch(env.TOKEN_LIST, {
+    signal,
+    next: { revalidate: 3600 },
+  } as RequestInit);
 
-  try {
-    const res = await fetch(env.TOKEN_LIST, {
-      signal: combined,
-      headers: { Accept: "application/json" },
-      next: { revalidate: 3600 },
-    } as RequestInit);
-
-    clearTimeout(timer);
-
-    if (!res.ok) throw new Error(`Jupiter token list failed: ${res.status}`);
-    const raw: JupiterTokenRaw[] = await res.json();
-    return raw.map((t) => ({
-      address: t.address,
-      symbol: t.symbol ?? t.address.slice(0, 6),
-      name: t.name ?? t.symbol ?? t.address.slice(0, 8),
-      decimals: t.decimals ?? 9,
-      logoURI: t.logoURI,
-      tags: t.tags ?? [],
-      sources: ["jupiter" as const],
-      chainId: t.chainId ?? 101,
-    }));
-  } catch (err) {
-    clearTimeout(timer);
-    throw err;
+  if (!response.ok) {
+    throw new Error(`Jupiter token list fetch failed: ${response.statusText}`);
   }
+
+  const tokens: JupiterToken[] = await response.json();
+
+  return tokens.map((t) => ({
+    address: t.address,
+    chainId: t.chainId ?? 101,
+    decimals: t.decimals,
+    name: t.name,
+    symbol: t.symbol,
+    logoURI: t.logoURI,
+    tags: t.tags ?? [],
+    extensions: t.extensions ?? {},
+    sources: ["jupiter" as const],
+    rank: t.tags?.includes("verified") ? 100 : t.tags?.includes("community") ? 50 : 10,
+  }));
 }

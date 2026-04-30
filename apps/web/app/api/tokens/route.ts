@@ -1,18 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
-import { aggregateTokens, filterTokenList } from "@askstudio/tokens";
+import { NextResponse } from "next/server";
+import { aggregateTokens } from "@askstudio/tokens";
 
-export const runtime = "edge";
 export const revalidate = 3600;
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
   try {
-    const list = await aggregateTokens();
-    const filtered = filterTokenList(list);
-    return NextResponse.json(filtered, {
-      headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200" },
+    const tokenList = await aggregateTokens(controller.signal);
+    return NextResponse.json(tokenList, {
+      headers: {
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
+        "Content-Type": "application/json",
+      },
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: `Token aggregation failed: ${message}` }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Token aggregation failed";
+    return NextResponse.json({ error: message, tokens: [] }, { status: 500 });
+  } finally {
+    clearTimeout(timeout);
   }
 }

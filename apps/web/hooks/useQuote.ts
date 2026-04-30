@@ -13,8 +13,8 @@ export function useQuote() {
     inputAmount,
     slippageBps,
     setRoute,
-    setLoadingQuote,
-    setError,
+    setIsLoadingQuote,
+    setQuoteError,
   } = useSwapStore();
 
   const [latencyMs, setLatencyMs] = useState<number | undefined>(undefined);
@@ -31,8 +31,8 @@ export function useQuote() {
     if (abortRef.current) abortRef.current.abort();
     abortRef.current = new AbortController();
 
-    setLoadingQuote(true);
-    setError(null);
+    setIsLoadingQuote(true);
+    setQuoteError(null);
 
     const start = performance.now();
 
@@ -71,13 +71,13 @@ export function useQuote() {
       setLatencyMs(Math.round(performance.now() - start));
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
-      setError(err instanceof Error ? err.message : "Quote failed");
+      setQuoteError(err instanceof Error ? err.message : "Quote failed");
       setRoute(null);
       setLatencyMs(undefined);
     } finally {
-      setLoadingQuote(false);
+      setIsLoadingQuote(false);
     }
-  }, [inputToken, outputToken, inputAmount, slippageBps, setRoute, setLoadingQuote, setError]);
+  }, [inputToken, outputToken, inputAmount, slippageBps, setRoute, setIsLoadingQuote, setQuoteError]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);

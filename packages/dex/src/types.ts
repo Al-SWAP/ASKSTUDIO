@@ -1,8 +1,44 @@
+export interface SwapRoute {
+  inputMint: string;
+  outputMint: string;
+  inAmount: string;
+  outAmount: string;
+  otherAmountThreshold: string;
+  swapMode: "ExactIn" | "ExactOut";
+  slippageBps: number;
+  platformFee?: PlatformFee;
+  priceImpactPct: string;
+  routePlan: RoutePlan[];
+  contextSlot?: number;
+  timeTaken?: number;
+  score?: number;
+}
+
+export interface PlatformFee {
+  amount: string;
+  feeBps: number;
+}
+
+export interface RoutePlan {
+  swapInfo: SwapInfo;
+  percent: number;
+}
+
+export interface SwapInfo {
+  ammKey: string;
+  label?: string;
+  inputMint: string;
+  outputMint: string;
+  inAmount: string;
+  outAmount: string;
+  feeAmount: string;
+  feeMint: string;
+}
+
 export interface QuoteParams {
   inputMint: string;
   outputMint: string;
-  /** u64 integer as a decimal string to preserve precision beyond Number.MAX_SAFE_INTEGER. */
-  amount: string;
+  amount: number;
   slippageBps?: number;
   swapMode?: "ExactIn" | "ExactOut";
   onlyDirectRoutes?: boolean;
@@ -10,37 +46,18 @@ export interface QuoteParams {
   platformFeeBps?: number;
 }
 
-export interface RoutePlanStep {
-  swapInfo: {
-    ammKey: string;
-    label?: string;
-    inputMint: string;
-    outputMint: string;
-    inAmount: string;
-    outAmount: string;
-    feeAmount: string;
-    feeMint: string;
-  };
-  percent: number;
+export interface SwapParams {
+  quoteResponse: SwapRoute;
+  userPublicKey: string;
+  wrapAndUnwrapSol?: boolean;
+  asLegacyTransaction?: boolean;
+  feeAccount?: string;
 }
 
-export interface SwapRoute {
-  inputMint: string;
-  inAmount: string;
-  outputMint: string;
-  outAmount: string;
-  otherAmountThreshold: string;
-  swapMode: string;
-  slippageBps: number;
-  platformFee?: {
-    amount: string;
-    feeBps: number;
-  };
-  priceImpactPct: string;
-  routePlan: RoutePlanStep[];
-  contextSlot?: number;
-  timeTaken?: number;
-  score?: number;
+export interface SwapTransaction {
+  swapTransaction: string;
+  lastValidBlockHeight: number;
+  prioritizationFeeLamports?: number;
 }
 
 export interface RouteScore {
@@ -48,35 +65,9 @@ export interface RouteScore {
   score: number;
   breakdown: {
     outputScore: number;
-    /** Slippage-based penalty score (derived from slippageBps). */
-    slippageScore: number;
+    feeScore: number;
     priceImpactScore: number;
     latencyScore: number;
-    hopScore: number;
-  };
-}
-
-export interface SwapParams {
-  quoteResponse: SwapRoute;
-  userPublicKey: string;
-  wrapAndUnwrapSol?: boolean;
-  feeAccount?: string;
-  prioritizationFeeLamports?: number | "auto";
-  asLegacyTransaction?: boolean;
-  dynamicComputeUnitLimit?: boolean;
-  skipUserAccountsRpcCalls?: boolean;
-}
-
-export interface SwapTransaction {
-  swapTransaction: string;
-  lastValidBlockHeight?: number;
-  prioritizationFeeLamports?: number;
-  computeUnitLimit?: number;
-  dynamicSlippageReport?: {
-    slippageBps: number;
-    otherAmount?: number;
-    simulatedIncurredSlippageBps?: number;
-    amplificationRatio?: string;
   };
 }
 
@@ -91,14 +82,12 @@ export interface AnalyticsEntry {
   timestamp: number;
   inputMint: string;
   outputMint: string;
-  /** Input amount as a string to preserve u64 precision (can exceed Number.MAX_SAFE_INTEGER). */
   inputAmount: string;
-  /** Output amount as a string to preserve u64 precision. */
   outputAmount: string;
-  feeBps: number;
-  /** Fee amount as a string to preserve u64 precision. */
   feeAmountLamports: string;
-  signature?: string;
+  feeBps?: number;
   priceImpactPct: number;
   routeCount: number;
+  signature?: string;
+  error?: string;
 }

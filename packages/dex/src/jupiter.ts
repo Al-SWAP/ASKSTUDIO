@@ -1,38 +1,13 @@
 import { env } from "@askstudio/config";
-import { combineSignals } from "@askstudio/web3";
 import type { QuoteParams, SwapRoute, SwapParams, SwapTransaction } from "./types";
 
 const QUOTE_TIMEOUT_MS = 10_000;
-const SWAP_TIMEOUT_MS = 15_000;
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 500;
-
-async function fetchWithRetry(
-  url: string,
-  options: RequestInit,
-  retries: number
-): Promise<Response> {
-  let lastErr: unknown;
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const res = await fetch(url, options);
-      if (res.ok) return res;
-      const body = await res.text();
-      lastErr = new Error(`HTTP ${res.status}: ${body}`);
-      if (res.status < 500) throw lastErr;
-    } catch (e) {
-      lastErr = e;
-      if (i < retries) await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * (i + 1)));
-    }
-  }
-  throw lastErr;
-}
 
 export async function getJupiterQuote(params: QuoteParams, signal?: AbortSignal): Promise<SwapRoute> {
   const searchParams = new URLSearchParams({
     inputMint: params.inputMint,
     outputMint: params.outputMint,
-    amount: params.amount,
+    amount: params.amount.toString(),
     slippageBps: (params.slippageBps ?? 50).toString(),
     swapMode: params.swapMode ?? "ExactIn",
     onlyDirectRoutes: (params.onlyDirectRoutes ?? false).toString(),
@@ -44,61 +19,78 @@ export async function getJupiterQuote(params: QuoteParams, signal?: AbortSignal)
   }
 
   const timeoutController = new AbortController();
-  const timer = setTimeout(() => timeoutController.abort(), QUOTE_TIMEOUT_MS);
-  const combined = signal ? combineSignals([signal, timeoutController.signal]) : timeoutController.signal;
+  const timeout = setTimeout(() => timeoutController.abort(), QUOTE_TIMEOUT_MS);
+
+  const combinedSignal = signal
+    ? anySignal([signal, timeoutController.signal])
+    : timeoutController.signal;
 
   try {
-    const res = await fetchWithRetry(
-      `${env.JUPITER_API}/quote?${searchParams.toString()}`,
-      { signal: combined, headers: { Accept: "application/json" } },
-      MAX_RETRIES
-    );
-    clearTimeout(timer);
-    const data: SwapRoute = await res.json();
+    const response = await fetch(`${env.JUPITER_API}/quote?${searchParams.toString()}`, {
+      signal: combinedSignal,
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Jupiter quote failed (${response.status}): ${errorText}`);
+    }
+
+    const data: SwapRoute = await response.json();
     return data;
-  } catch (e) {
-    clearTimeout(timer);
-    throw e;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
-export async function buildJupiterSwapTransaction(
+export async function getJupiterSwapTransaction(
   params: SwapParams,
   signal?: AbortSignal
 ): Promise<SwapTransaction> {
-  const timeoutController = new AbortController();
-  const timer = setTimeout(() => timeoutController.abort(), SWAP_TIMEOUT_MS);
-  const combined = signal ? combineSignals([signal, timeoutController.signal]) : timeoutController.signal;
+  const response = await fetch(env.JUPITER_SWAP_API, {
+    method: "POST",
+    signal,
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({
+      quoteResponse: params.quoteResponse,
+      userPublicKey: params.userPublicKey,
+      wrapAndUnwrapSol: params.wrapAndUnwrapSol ?? true,
+      asLegacyTransaction: params.asLegacyTransaction ?? false,
+      feeAccount: params.feeAccount,
+    }),
+  });
 
-  const body: Record<string, unknown> = {
-    quoteResponse: params.quoteResponse,
-    userPublicKey: params.userPublicKey,
-    wrapAndUnwrapSol: params.wrapAndUnwrapSol ?? true,
-    dynamicComputeUnitLimit: params.dynamicComputeUnitLimit ?? true,
-    skipUserAccountsRpcCalls: params.skipUserAccountsRpcCalls ?? false,
-  };
-
-  if (params.feeAccount) body.feeAccount = params.feeAccount;
-  if (params.prioritizationFeeLamports !== undefined) {
-    body.prioritizationFeeLamports = params.prioritizationFeeLamports;
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Jupiter swap transaction failed (${response.status}): ${errorText}`);
   }
-  if (params.asLegacyTransaction) body.asLegacyTransaction = true;
 
-  try {
-    const res = await fetchWithRetry(
-      `${env.JUPITER_SWAP_API}`,
-      {
-        method: "POST",
-        signal: combined,
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(body),
-      },
-      MAX_RETRIES
-    );
-    clearTimeout(timer);
-    return res.json();
-  } catch (e) {
-    clearTimeout(timer);
-    throw e;
+  return response.json();
+}
+
+function anySignal(signals: AbortSignal[]): AbortSignal {
+  // Prefer the native AbortSignal.any when available (Node 18.17+ / Chrome 116+)
+  if (typeof AbortSignal.any === "function") {
+    return AbortSignal.any(signals);
   }
+  const controller = new AbortController();
+  const cleanup: (() => void)[] = [];
+
+  for (const signal of signals) {
+    if (signal.aborted) {
+      controller.abort();
+      return controller.signal;
+    }
+    const onAbort = () => {
+      controller.abort();
+      cleanup.forEach((fn) => fn());
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    cleanup.push(() => signal.removeEventListener("abort", onAbort));
+  }
+
+  // Also clean up all listeners once the combined signal itself fires.
+  controller.signal.addEventListener("abort", () => cleanup.forEach((fn) => fn()), { once: true });
+
+  return controller.signal;
 }

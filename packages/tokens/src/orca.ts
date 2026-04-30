@@ -1,52 +1,44 @@
 import { env } from "@askstudio/config";
-import type { Token, OrcaPoolRaw } from "./types";
-import { combineSignals } from "./utils";
-
-const FETCH_TIMEOUT_MS = 15_000;
+import type { Token, OrcaPool } from "./types";
 
 export async function fetchOrcaTokens(signal?: AbortSignal): Promise<Token[]> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  const combined = signal
-    ? combineSignals([signal, controller.signal])
-    : controller.signal;
+  const response = await fetch(env.ORCA_API, {
+    signal,
+    next: { revalidate: 3600 },
+  } as RequestInit);
 
-  try {
-    const res = await fetch(env.ORCA_API, {
-      signal: combined,
-      headers: { Accept: "application/json" },
-      next: { revalidate: 3600 },
-    } as RequestInit);
+  if (!response.ok) {
+    throw new Error(`Orca API fetch failed: ${response.statusText}`);
+  }
 
-    clearTimeout(timer);
+  const data: Record<string, OrcaPool> = await response.json();
+  const tokenMap = new Map<string, Token>();
 
-    if (!res.ok) throw new Error(`Orca API failed: ${res.status}`);
-
-    const data = await res.json() as Record<string, OrcaPoolRaw>;
-    const mintSet = new Map<string, Token>();
-
-    for (const pool of Object.values(data)) {
-      for (const [mint, decimals] of [
-        [pool.tokenMintA, pool.decimalsA ?? 9],
-        [pool.tokenMintB, pool.decimalsB ?? 9],
-      ] as [string, number][]) {
-        if (mint && !mintSet.has(mint)) {
-          const sym = mint.slice(0, 6).toUpperCase();
-          mintSet.set(mint, {
-            address: mint,
-            symbol: sym,
-            name: sym,
-            decimals,
-            sources: ["orca" as const],
-            tags: [],
-          });
+  for (const pool of Object.values(data)) {
+    for (const [, tokenInfo] of Object.entries(pool.tokens ?? {})) {
+      // Use tokenInfo.mint as the canonical address; the record key is not guaranteed
+      // to be the mint address and using it can produce incorrect token.address values.
+      const mintAddress = tokenInfo.mint;
+      if (!tokenMap.has(mintAddress)) {
+        tokenMap.set(mintAddress, {
+          address: mintAddress,
+          chainId: 101,
+          decimals: tokenInfo.decimals,
+          name: tokenInfo.name,
+          symbol: tokenInfo.name.slice(0, 10).toUpperCase(),
+          logoURI: tokenInfo.logoURI,
+          tags: [],
+          sources: ["orca" as const],
+          rank: 5,
+        });
+      } else {
+        const existing = tokenMap.get(mintAddress)!;
+        if (!existing.sources.includes("orca")) {
+          existing.sources.push("orca");
         }
       }
     }
-
-    return Array.from(mintSet.values());
-  } catch (err) {
-    clearTimeout(timer);
-    throw err;
   }
+
+  return Array.from(tokenMap.values());
 }
