@@ -10,22 +10,23 @@ import { formatBaseUnits } from "@/lib/formatUnits";
 
 const DEBOUNCE_MS = 600;
 
-/** Convert a decimal string amount to base units (integer) without float precision loss.
- * Rejects scientific notation (e.g. "1e-7") and non-decimal formats to prevent silent
- * misparsing. Throws if the result exceeds Number.MAX_SAFE_INTEGER. */
-function toBaseUnits(amount: string, decimals: number): number {
+/** Convert a decimal string amount to base units using BigInt to avoid float precision
+ * loss on values that can exceed Number.MAX_SAFE_INTEGER (common on Solana). Returns
+ * the result as a string to preserve full precision in URL query parameters. */
+function toBaseUnits(amount: string, decimals: number): string {
   // Only accept plain decimal strings (digits with optional single dot).
-  if (!/^\d*\.?\d*$/.test(amount) || amount === "" || amount === ".") return 0;
+  if (!/^\d*\.?\d*$/.test(amount) || amount === "" || amount === ".") return "0";
   const [whole, frac = ""] = amount.split(".");
   const fracPadded = frac.padEnd(decimals, "0").slice(0, decimals);
   const combined = (whole || "0") + fracPadded;
   const trimmed = combined.replace(/^0+(?=\d)/, "") || "0";
-  const result = parseInt(trimmed, 10);
-  if (isNaN(result)) return 0;
-  if (result > Number.MAX_SAFE_INTEGER) {
-    throw new Error("Amount too large to represent safely; please reduce the input amount.");
+  try {
+    const bn = BigInt(trimmed);
+    if (bn < 0n) return "0";
+    return bn.toString();
+  } catch {
+    return "0";
   }
-  return result;
 }
 
 /** Decode a base64 string to Uint8Array without relying on Node's Buffer polyfill. */

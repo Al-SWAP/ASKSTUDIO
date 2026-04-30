@@ -40,8 +40,14 @@ export default function TokensAdminPage() {
 
   const filtered = tokens
     .filter((t) => {
-      const q = search.toLowerCase();
-      return !q || t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || t.address.toLowerCase().includes(q);
+      const q = search.trim();
+      if (!q) return true;
+      const qLower = q.toLowerCase();
+      return (
+        t.symbol.toLowerCase().includes(qLower) ||
+        t.name.toLowerCase().includes(qLower) ||
+        t.address.includes(q)
+      );
     })
     .slice(0, 100);
 
