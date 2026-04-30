@@ -76,7 +76,12 @@ class RpcManager {
 
   getBestEndpoint(): string {
     if (this.pinnedEndpoint && this.endpoints.includes(this.pinnedEndpoint)) {
-      return this.pinnedEndpoint;
+      const pinnedHealth = this.healthMap.get(this.pinnedEndpoint);
+      // Honor the pin only when the endpoint has never been checked (initial state)
+      // or is currently healthy. An unhealthy pin falls through to auto-selection.
+      if (!pinnedHealth || pinnedHealth.healthy) {
+        return this.pinnedEndpoint;
+      }
     }
     const healthy = this.endpoints
       .map((ep) => this.healthMap.get(ep)!)
@@ -120,7 +125,12 @@ class RpcManager {
       ]);
       return conn;
     } catch {
+      // Mark the failing endpoint as unhealthy and clear any pin so getBestEndpoint()
+      // can select a healthy fallback instead of returning the same unhealthy endpoint.
       this.healthMap.set(best, { ...this.healthMap.get(best)!, healthy: false });
+      if (this.pinnedEndpoint === best) {
+        this.pinnedEndpoint = null;
+      }
       const fallback = this.getBestEndpoint();
       return this.getOrCreateConnection(fallback, commitment);
     } finally {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { env } from "@askstudio/config";
+import { env, MAX_SLIPPAGE_BPS } from "@askstudio/config";
 
 export const runtime = "edge";
 
@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const inputMint = searchParams.get("inputMint");
   const outputMint = searchParams.get("outputMint");
   const amount = searchParams.get("amount");
-  const slippageBps = searchParams.get("slippageBps") ?? "50";
+  const slippageBpsRaw = searchParams.get("slippageBps") ?? "50";
 
   if (!inputMint || !outputMint || !amount) {
     return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
@@ -18,6 +18,12 @@ export async function GET(req: NextRequest) {
   if (isNaN(amountNum) || amountNum <= 0) {
     return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
   }
+
+  const slippageBpsNum = parseInt(slippageBpsRaw, 10);
+  if (isNaN(slippageBpsNum) || slippageBpsNum < 0) {
+    return NextResponse.json({ error: "Invalid slippageBps" }, { status: 400 });
+  }
+  const slippageBps = Math.min(slippageBpsNum, MAX_SLIPPAGE_BPS).toString();
 
   const params = new URLSearchParams({ inputMint, outputMint, amount: amountNum.toString(), slippageBps, swapMode: "ExactIn" });
 

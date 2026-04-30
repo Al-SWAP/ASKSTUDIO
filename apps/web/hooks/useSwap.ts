@@ -11,8 +11,11 @@ import { formatBaseUnits } from "@/lib/formatUnits";
 const DEBOUNCE_MS = 600;
 
 /** Convert a decimal string amount to base units (integer) without float precision loss.
- * Throws if the result exceeds Number.MAX_SAFE_INTEGER to prevent precision errors. */
+ * Rejects scientific notation (e.g. "1e-7") and non-decimal formats to prevent silent
+ * misparsing. Throws if the result exceeds Number.MAX_SAFE_INTEGER. */
 function toBaseUnits(amount: string, decimals: number): number {
+  // Only accept plain decimal strings (digits with optional single dot).
+  if (!/^\d*\.?\d*$/.test(amount) || amount === "" || amount === ".") return 0;
   const [whole, frac = ""] = amount.split(".");
   const fracPadded = frac.padEnd(decimals, "0").slice(0, decimals);
   const combined = (whole || "0") + fracPadded;

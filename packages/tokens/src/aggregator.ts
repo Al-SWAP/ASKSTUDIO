@@ -38,17 +38,26 @@ export async function aggregateTokens(signal?: AbortSignal): Promise<TokenList> 
     fetchOrcaTokens(signal),
   ]);
 
+  const fulfilled = results.filter(
+    (r): r is PromiseFulfilledResult<Token[]> => r.status === "fulfilled"
+  );
+
+  if (fulfilled.length === 0) {
+    const errors = results
+      .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+      .map((r) => (r.reason instanceof Error ? r.reason.message : String(r.reason)));
+    throw new Error(`All token sources failed: ${errors.join("; ")}`);
+  }
+
   const tokenMap = new Map<string, Token>();
 
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      for (const token of result.value) {
-        const existing = tokenMap.get(token.address);
-        if (existing) {
-          tokenMap.set(token.address, mergeToken(existing, token));
-        } else {
-          tokenMap.set(token.address, { ...token });
-        }
+  for (const result of fulfilled) {
+    for (const token of result.value) {
+      const existing = tokenMap.get(token.address);
+      if (existing) {
+        tokenMap.set(token.address, mergeToken(existing, token));
+      } else {
+        tokenMap.set(token.address, { ...token });
       }
     }
   }

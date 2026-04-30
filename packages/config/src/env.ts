@@ -9,7 +9,10 @@ export const env = {
   ORCA_API: process.env.NEXT_PUBLIC_ORCA_API ?? "https://api.orca.so/allPools",
   WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "public_default_project_id",
   FEE_RESERVE: process.env.NEXT_PUBLIC_FEE_RESERVE ?? "",
-  DEFAULT_FEE_BPS: Number(process.env.NEXT_PUBLIC_DEFAULT_FEE_BPS ?? "20"),
+  DEFAULT_FEE_BPS: (() => {
+    const parsed = parseInt(process.env.NEXT_PUBLIC_DEFAULT_FEE_BPS ?? "20", 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 20;
+  })(),
 } as const;
 
 export type Env = typeof env;

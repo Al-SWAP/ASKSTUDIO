@@ -7,16 +7,30 @@ const WEIGHTS = {
   latency: 0.1,
 };
 
-export function scoreRoute(route: SwapRoute, latencyMs?: number): RouteScore {
-  // Use BigInt for the outAmount comparison to avoid precision loss on large base-unit values.
-  const outAmountPositive = BigInt(route.outAmount || "0") > 0n;
+export function scoreRoute(
+  route: SwapRoute,
+  latencyMs?: number,
+  maxOutAmount?: bigint
+): RouteScore {
+  const outAmount = BigInt(route.outAmount || "0");
   // Guard against NaN/Infinity from missing or malformed priceImpactPct.
   const priceImpactRaw = parseFloat(route.priceImpactPct);
   const priceImpact = isFinite(priceImpactRaw) ? priceImpactRaw : 0;
-  const slippageBps = route.slippageBps;
+  // Prefer explicit platform fee BPS; fall back to slippage BPS as a proxy for cost.
+  const feeBps = route.platformFee?.feeBps ?? route.slippageBps;
 
-  const outputScore = outAmountPositive ? Math.min(100, (1 / (1 + priceImpact)) * 100) : 0;
-  const feeScore = Math.max(0, 100 - slippageBps / 10);
+  // Normalize outputScore against the best known outAmount across all candidate routes.
+  // Falls back to a priceImpact-based heuristic when only a single route is scored.
+  let outputScore: number;
+  if (maxOutAmount !== undefined && maxOutAmount > 0n) {
+    outputScore =
+      outAmount > 0n
+        ? Math.min(100, Number((outAmount * 10_000n) / maxOutAmount) / 100)
+        : 0;
+  } else {
+    outputScore = outAmount > 0n ? Math.min(100, (1 / (1 + priceImpact)) * 100) : 0;
+  }
+  const feeScore = Math.max(0, 100 - feeBps / 10);
   const priceImpactScore = Math.max(0, 100 - priceImpact * 20);
   const latencyScore = latencyMs != null ? Math.max(0, 100 - latencyMs / 100) : 50;
 
@@ -34,8 +48,13 @@ export function scoreRoute(route: SwapRoute, latencyMs?: number): RouteScore {
 }
 
 export function sortRoutes(routes: SwapRoute[], latencyMs?: number): RouteScore[] {
+  // Compute the maximum outAmount across all routes so outputScore is properly normalized.
+  const maxOutAmount = routes.reduce((max, r) => {
+    const amt = BigInt(r.outAmount || "0");
+    return amt > max ? amt : max;
+  }, 0n);
   return routes
-    .map((route) => scoreRoute(route, latencyMs))
+    .map((route) => scoreRoute(route, latencyMs, maxOutAmount))
     .sort((a, b) => b.score - a.score);
 }
 
@@ -47,6 +66,7 @@ export function getBestRoute(routes: SwapRoute[], latencyMs?: number): SwapRoute
 
 export function formatPriceImpact(priceImpactPct: string): string {
   const pct = parseFloat(priceImpactPct);
+  if (!isFinite(pct) || pct < 0) return "—";
   if (pct < 0.01) return "<0.01%";
   return `${pct.toFixed(2)}%`;
 }

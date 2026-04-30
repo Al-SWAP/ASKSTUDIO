@@ -37,12 +37,15 @@ export function TokenSelectorModal({ open, onClose, onSelect, excludeMint }: Tok
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="token-selector-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="glass-card w-full max-w-sm max-h-[80vh] flex flex-col shadow-2xl">
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="font-semibold text-white">Select Token</h2>
+          <h2 id="token-selector-title" className="font-semibold text-white">Select Token</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors"

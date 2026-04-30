@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const ALLOWED_WALLETS = (process.env.ADMIN_ALLOWED_WALLETS ?? "")
   .split(",")
-  .map((w) => w.trim().toLowerCase())
+  .map((w) => w.trim())
   .filter(Boolean);
 
 // Replay-attack window: 5 minutes
@@ -72,7 +72,7 @@ export async function middleware(req: NextRequest) {
     return unauthorized("Missing authentication headers (x-wallet-address, x-wallet-signature, x-wallet-message)");
   }
 
-  const wallet = walletAddress.toLowerCase();
+  const wallet = walletAddress;
   if (!ALLOWED_WALLETS.includes(wallet)) {
     return unauthorized("Wallet not on allowlist");
   }
