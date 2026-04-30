@@ -25,8 +25,10 @@ export default function TokenInspectorPage() {
   const filtered = tokens
     .filter((t) => {
       if (sourceFilter !== "all" && !t.sources.includes(sourceFilter as "jupiter" | "raydium" | "orca")) return false;
-      const q = search.toLowerCase();
-      return !q || t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || t.address.toLowerCase() === q;
+      const q = search.trim();
+      if (!q) return true;
+      const qLower = q.toLowerCase();
+      return t.symbol.toLowerCase().includes(qLower) || t.name.toLowerCase().includes(qLower) || t.address.includes(q);
     })
     .slice(0, 100);
 

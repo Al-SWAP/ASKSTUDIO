@@ -73,13 +73,14 @@ export async function aggregateTokens(signal?: AbortSignal): Promise<TokenList> 
 }
 
 export function searchTokens(tokens: Token[], query: string): Token[] {
-  const q = query.toLowerCase().trim();
+  const q = query.trim();
   if (!q) return tokens;
+  const qLower = q.toLowerCase();
   return tokens.filter(
     (t) =>
-      t.symbol.toLowerCase().includes(q) ||
-      t.name.toLowerCase().includes(q) ||
-      t.address.toLowerCase() === q
+      t.symbol.toLowerCase().includes(qLower) ||
+      t.name.toLowerCase().includes(qLower) ||
+      t.address.includes(q)
   );
 }
 

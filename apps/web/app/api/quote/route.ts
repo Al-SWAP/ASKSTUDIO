@@ -16,8 +16,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
   }
 
-  const amountNum = parseInt(amount, 10);
-  if (isNaN(amountNum) || amountNum <= 0) {
+  // Use BigInt to validate and normalise the amount without float precision loss.
+  // Solana token amounts are integers that can exceed Number.MAX_SAFE_INTEGER.
+  let amountBigInt: bigint;
+  try {
+    amountBigInt = BigInt(amount);
+  } catch {
+    return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+  }
+  if (amountBigInt <= 0n) {
     return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
   }
 
@@ -30,16 +37,25 @@ export async function GET(req: NextRequest) {
   const params = new URLSearchParams({
     inputMint,
     outputMint,
-    amount: amountNum.toString(),
+    amount: amountBigInt.toString(),
     slippageBps,
     swapMode: "ExactIn",
   });
 
+  // AbortSignal.timeout is not supported on all Edge runtimes; use AbortController
+  // + setTimeout for broader compatibility.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), QUOTE_TIMEOUT_MS);
   try {
-    const response = await fetch(`${env.JUPITER_API}/quote?${params.toString()}`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(QUOTE_TIMEOUT_MS),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${env.JUPITER_API}/quote?${params.toString()}`, {
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       const errText = await response.text();

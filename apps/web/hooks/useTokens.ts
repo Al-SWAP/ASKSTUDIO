@@ -27,13 +27,14 @@ export function useTokens() {
 
 export function useTokenSearch(tokens: Token[], query: string): Token[] {
   if (!query.trim()) return tokens.slice(0, 100);
-  const q = query.toLowerCase().trim();
+  const q = query.trim();
+  const qLower = q.toLowerCase();
   return tokens
     .filter(
       (t) =>
-        t.symbol.toLowerCase().includes(q) ||
-        t.name.toLowerCase().includes(q) ||
-        t.address.toLowerCase() === q
+        t.symbol.toLowerCase().includes(qLower) ||
+        t.name.toLowerCase().includes(qLower) ||
+        t.address.includes(q)
     )
     .slice(0, 50);
 }
